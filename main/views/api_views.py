@@ -244,10 +244,27 @@ class CreateListNestedViewSetMixin(CreateListModelMixin, NestedViewSetMixin):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
+class CalloutFilter(filters.FilterSet):
+    status = filters.MultipleChoiceFilter(choices=Event.STATUS_TYPES)
+    class Meta:
+        model = Event
+        fields = ('status', 'operation_type')
+
+
 class CalloutViewSet(CreateListModelMixin, BaseViewSet):
-    queryset = Event.objects.filter(type='operation')
-    serializer_class = CalloutSerializer
-    filterset_fields = ('status', 'operation_type')
+    queryset = Event.objects.filter(type='operation').prefetch_related(
+        'period_set',
+        'period_set__calloutresponse_set',
+        'period_set__calloutresponse_set__member',
+        'calloutlog_set')
+    filterset_class = CalloutFilter
+
+    def get_serializer_class(self):
+        if getattr(self, 'action', None) == 'list':
+            return CalloutListSerializer
+        elif getattr(self, 'action', None) == 'respond':
+            return CalloutResponsePostSerializer
+        return CalloutDetailSerializer
 
     @action(methods=['post'], detail=True)
     def respond(self, request, pk=None):
@@ -268,7 +285,7 @@ class CalloutResponseViewSet(CreateListModelMixin, BaseViewSet):
 
 
 class CalloutLogViewSet(CreateListNestedViewSetMixin, BaseViewSet):
-    queryset = CalloutLog.objects.all()
+    queryset = CalloutLog.objects.prefetch_related('member')
     serializer_class = CalloutLogSerializer
 
     def perform_create(self, serializer):

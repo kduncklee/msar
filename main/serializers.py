@@ -4,6 +4,7 @@ from .models import *
 from .tasks import message_send, set_do
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
+from django.db.models import Count
 from django.urls import reverse
 from rest_framework import exceptions, serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -296,16 +297,15 @@ class MemberPhotoSerializer(WriteOnceMixin, CreatePermModelSerializer):
 # For App
 
 class LocationCoordinatesSerializer(serializers.Serializer):
-    lat = serializers.CharField()
-    long = serializers.CharField(source='lon')
+    lat = serializers.CharField(required=False)
+    long = serializers.CharField(source='lon', required=False)
     
 class LocationSerializer(serializers.Serializer):
-    label = serializers.CharField(source='location', required=False)
+    text = serializers.CharField(source='location', required=False)
     coordinates = LocationCoordinatesSerializer(source='*', required=False)
 
 
 class CalloutMemberSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Member
         fields = ('id', 'first_name', 'last_name', 'full_name', 'username')
@@ -320,6 +320,11 @@ class CalloutResponseSerializer(serializers.ModelSerializer):
         fields = ('id', 'response', 'member') + read_only_fields
         #  'event', 'period',
 
+class CalloutResponsePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CalloutResponse
+        fields = ('id', 'response')
+
 
 class CalloutPeriodSerializer(serializers.ModelSerializer):
     op = serializers.IntegerField(source='position')
@@ -330,24 +335,18 @@ class CalloutPeriodSerializer(serializers.ModelSerializer):
         fields = ('id', 'op', 'responses')
 
 
-class CalloutSerializer(serializers.ModelSerializer):
+class CalloutListSerializer(serializers.ModelSerializer):
     location = LocationSerializer(source='*', required=False)
     my_response = serializers.SerializerMethodField()
-    log_count = serializers.SerializerMethodField()
-    last_log_timestamp = serializers.SerializerMethodField()
-    operational_periods = CalloutPeriodSerializer(
-        source='period_set', many=True, read_only=True)
+    responded = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
         read_only_fields = ('created_at',)
-        fields = ('id', 'title', 'operation_type', 'description', 'location',
-                  'my_response',
-                  'subject', 'subject_contact',
-                  'informant', 'informant_contact',
+        fields = ('id', 'title', 'operation_type', 'description',
+                  'my_response', 'responded',
                   'radio_channel', 'status', 'resolution',
-                  'log_count', 'last_log_timestamp',
-                  'operational_periods',
+                   'location',
         ) + read_only_fields
 
     def save(self, **kwargs):
@@ -368,11 +367,33 @@ class CalloutSerializer(serializers.ModelSerializer):
             return None
         return response.response
 
+    def get_responded(self, obj):
+        return CalloutResponse.objects.filter(period__event=obj).values('response').annotate(total=Count('response')).order_by()
+
+class CalloutDetailSerializer(CalloutListSerializer):
+    log_count = serializers.SerializerMethodField()
+    last_log_timestamp = serializers.SerializerMethodField()
+    operational_periods = CalloutPeriodSerializer(
+        source='period_set', many=True, read_only=True)
+
+    class Meta:
+        model = Event
+        read_only_fields = ('created_at',)
+        fields = ('id', 'title', 'operation_type', 'description',
+                  'my_response', 'responded',
+                  'subject', 'subject_contact',
+                  'informant', 'informant_contact',
+                  'radio_channel', 'status', 'resolution',
+                  'log_count', 'last_log_timestamp',
+                   'location',
+                  'operational_periods',
+        ) + read_only_fields
+
     def get_log_count(self, obj):
-        return CalloutLog.objects.filter(event=obj).count()
+        return obj.calloutlog_set.all().count()
 
     def get_last_log_timestamp(self, obj):
-        latest = CalloutLog.objects.filter(event=obj).order_by('-id').first()
+        latest = obj.calloutlog_set.filter(event=obj).order_by('-id').first()
         if latest is not None:
             return latest.created_at
         return None
