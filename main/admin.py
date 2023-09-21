@@ -72,6 +72,18 @@ class PeriodAdmin(SimpleHistoryAdmin):
         ParticipantInline,
         ]
 
+
+@admin.register(CalloutResponse)
+class CalloutResponseAdmin(admin.ModelAdmin):
+    list_display = ('period', 'created_at', 'member', 'response')
+    search_fields = ['member', 'period']
+
+@admin.register(CalloutLog)
+class CalloutLogAdmin(admin.ModelAdmin):
+    list_display = ('event', 'created_at', 'member', 'message')
+    search_fields = ['member', 'event']
+
+
 @admin.register(DoAvailable)
 class DoAvailableAdmin(admin.ModelAdmin):
     search_fields = ['member__last_name', 'member__first_name', 'member__username']

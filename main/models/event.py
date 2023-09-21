@@ -20,7 +20,17 @@ class Event(BaseModel):
         ('operation', 'Operation'),
         ('training', 'Training'),
         ('community', 'Community'))
+    OPERATION_TYPES = (
+        ('search', 'Search'),
+        ('rescue', 'Rescue'))
+    STATUS_TYPES = (
+        ('active', 'Active'),
+        ('resolved', 'Resolved'),
+        ('archived', 'Archived'))
     type = models.CharField(choices=TYPES, max_length=255)
+    operation_type = models.CharField(
+        choices=OPERATION_TYPES, max_length=255,
+        blank=True, null=True)
     title = models.CharField(max_length=255)
     leaders = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
@@ -34,8 +44,17 @@ class Event(BaseModel):
         help_text='Replaces location field on internal calendar.')
     lat = models.CharField(max_length=255, blank=True, null=True)
     lon = models.CharField(max_length=255, blank=True, null=True)
-    start_at = models.DateTimeField()
-    finish_at = models.DateTimeField()
+    subject = models.CharField(max_length=255, blank=True, null=True)
+    subject_contact = models.CharField(max_length=255, blank=True, null=True)
+    informant = models.CharField(max_length=255, blank=True, null=True)
+    informant_contact = models.CharField(max_length=255, blank=True, null=True)
+    radio_channel = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(
+        choices=STATUS_TYPES, max_length=255,
+        blank=True, null=True)
+    resolution = models.CharField(max_length=255, blank=True, null=True)
+    start_at = models.DateTimeField(null=True)
+    finish_at = models.DateTimeField(null=True)
     all_day = models.BooleanField(
         default=False,
         help_text='All Day events do not have a start or end time.')

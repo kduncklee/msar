@@ -8,6 +8,7 @@ from rest_framework import exceptions, generics, mixins, parsers, permissions, r
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_extensions.mixins import NestedViewSetMixin
 from django_filters import rest_framework as filters
 
 
@@ -228,3 +229,48 @@ class MemberPhotoViewSet(BaseViewSet):
     serializer_class = MemberPhotoSerializer
     filterset_fields = ('member', )
     search_fields = ('member__username', )
+
+# App
+class CreateListNestedViewSetMixin(CreateListModelMixin, NestedViewSetMixin):
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        parents_query_dict = self.get_parents_query_dict()
+        if parents_query_dict:
+            data.update(parents_query_dict)
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class CalloutViewSet(CreateListModelMixin, BaseViewSet):
+    queryset = Event.objects.filter(type='operation')
+    serializer_class = CalloutSerializer
+    filterset_fields = ('status', 'operation_type')
+
+    @action(methods=['post'], detail=True)
+    def respond(self, request, pk=None):
+        period = Period.objects.filter(event=pk).order_by('position').first()
+        if period is None:
+            return None
+        obj, created = CalloutResponse.objects.update_or_create(
+            period=period,
+            member=request.user,
+            defaults={'response': request.data['response']},
+        )
+        return Response(obj.pk)
+
+
+class CalloutResponseViewSet(CreateListModelMixin, BaseViewSet):
+    queryset = CalloutResponse.objects.all()
+    serializer_class = CalloutResponseSerializer
+
+
+class CalloutLogViewSet(CreateListNestedViewSetMixin, BaseViewSet):
+    queryset = CalloutLog.objects.all()
+    serializer_class = CalloutLogSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(member_id=self.request.user.id)
+

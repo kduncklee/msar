@@ -22,10 +22,12 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from main import views
 
-from rest_framework import routers
+import rest_framework.authtoken.views
+#from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
+from rest_framework_extensions import routers
 
-router = routers.DefaultRouter()
+router = routers.ExtendedDefaultRouter()
 router.register(r'events', views.EventViewSet, basename='event')
 router.register(r'periods', views.PeriodViewSet)
 router.register(r'participants', views.ParticipantViewSet)
@@ -38,6 +40,8 @@ router.register(r'member_availability', views.MemberUnavailableViewSet, basename
 router.register(r'photos', views.MemberPhotoViewSet)
 router.register(r'messages', views.MessageViewSet)
 router.register(r'inbound_sms', views.InboundSmsViewSet)
+callouts_router = router.register(r'callouts', views.CalloutViewSet, basename='callout')
+callouts_router.register(r'log', views.CalloutLogViewSet, basename='callout-log', parents_query_lookups=['event'])
 
 
 urlpatterns = [
@@ -115,6 +119,8 @@ urlpatterns = [
 
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api-token-auth/', rest_framework.authtoken.views.obtain_auth_token),
+
     url(r'^api-docs/', include_docs_urls(title='BAMRU API')),
 
     path('admin/', admin.site.urls),

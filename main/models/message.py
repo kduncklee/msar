@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from main.lib.phone import format_e164
 from .base import BaseModel, BasePositionModel, Configuration
-from .event import Period
+from .event import Event, Period
 from .member import Email, Member, Phone
 
 logger = logging.getLogger(__name__)
@@ -463,3 +463,16 @@ class OutboundEmail(OutboundMessage):
             else:
                 self.status = 'No server status'
         self.save()
+
+class CalloutResponse(BaseModel):
+    period = models.ForeignKey(Period, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    response = models.CharField(max_length=255)
+
+class CalloutLog(BaseModel):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    message = models.TextField()
+    lat = models.CharField(max_length=255, blank=True, null=True)
+    lon = models.CharField(max_length=255, blank=True, null=True)
+    update = models.TextField(blank=True, null=True)

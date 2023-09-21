@@ -25,6 +25,29 @@ class CustomUserManager(BaseUserManager):
         case_insensitive_username_field = '{}__iexact'.format(self.model.USERNAME_FIELD)
         return self.get(**{case_insensitive_username_field: username})
 
+    def create_user(self, username, first_name, last_name, password):
+        user = self.model(
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            password=password,
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, first_name, last_name, password):
+        user = self.create_user(
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            password=password,
+        )
+        user.is_admin = True
+        user.is_staff = True
+        user.save(using=self._db)
+        return user
+
 class CurrentMemberManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(status__in=Member.CURRENT_MEMBERS)

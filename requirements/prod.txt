@@ -37,6 +37,7 @@ django-timezone-field==3.0
 django-twilio==0.13.2
 djangorestframework==3.11.2
 docutils==0.14
+drf-extensions==0.7.1
 future==0.17.1
 google-api-python-client==1.7.4
 google-auth==1.6.1
