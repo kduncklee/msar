@@ -299,10 +299,17 @@ class MemberPhotoSerializer(WriteOnceMixin, CreatePermModelSerializer):
 class LocationCoordinatesSerializer(serializers.Serializer):
     lat = serializers.CharField(required=False)
     long = serializers.CharField(source='lon', required=False)
-    
+
+class LocationAddressSerializer(serializers.Serializer):
+    address = serializers.CharField(source='location_address', required=False)
+    city = serializers.CharField(source='location_city', required=False)
+    state = serializers.CharField(source='location_state', required=False)
+    zip = serializers.CharField(source='location_zip', required=False)
+
 class LocationSerializer(serializers.Serializer):
     text = serializers.CharField(source='location', required=False)
     coordinates = LocationCoordinatesSerializer(source='*', required=False)
+    address = LocationAddressSerializer(source='*', required=False)
 
 
 class CalloutMemberSerializer(serializers.ModelSerializer):
@@ -406,4 +413,4 @@ class CalloutLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = CalloutLog
         read_only_fields = ('created_at',)
-        fields = ('id', 'event', 'member', 'message', 'location', 'update') + read_only_fields
+        fields = ('id', 'type', 'event', 'member', 'message', 'location', 'update') + read_only_fields

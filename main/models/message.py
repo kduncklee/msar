@@ -11,6 +11,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 from main.lib.phone import format_e164
 from .base import BaseModel, BasePositionModel, Configuration
@@ -468,10 +469,22 @@ class CalloutResponse(BaseModel):
     period = models.ForeignKey(Period, on_delete=models.CASCADE)
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     response = models.CharField(max_length=255)
+    history = HistoricalRecords()
+
+    def save(self, *args, **kwargs):
+        super(CalloutResponse, self).save(*args, **kwargs)
+        CalloutLog.objects.create(
+            type='response', event=self.period.event, member=self.member,
+            message='', update=self.response)
 
 class CalloutLog(BaseModel):
+    TYPES = (
+        ('message', 'Message'),
+        ('response', 'Response'),
+        ('system', 'System'))
+    type = models.CharField(choices=TYPES, max_length=255)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True)
     message = models.TextField()
     lat = models.CharField(max_length=255, blank=True, null=True)
     lon = models.CharField(max_length=255, blank=True, null=True)
