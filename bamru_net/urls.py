@@ -40,6 +40,7 @@ router.register(r'member_availability', views.MemberUnavailableViewSet, basename
 router.register(r'photos', views.MemberPhotoViewSet)
 router.register(r'messages', views.MessageViewSet)
 router.register(r'inbound_sms', views.InboundSmsViewSet)
+router.register(r'event_notifications', views.EventNotificationsAvailableViewSet, basename='event_notification')
 callouts_router = router.register(r'callouts', views.CalloutViewSet, basename='callout')
 callouts_router.register(r'log', views.CalloutLogViewSet, basename='callout-log', parents_query_lookups=['event'])
 

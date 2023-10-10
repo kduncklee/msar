@@ -73,6 +73,11 @@ class PeriodAdmin(SimpleHistoryAdmin):
         ]
 
 
+@admin.register(EventNotificationsAvailable)
+class EventNotificationsAvailableAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+
+    
 @admin.register(CalloutResponse)
 class CalloutResponseAdmin(admin.ModelAdmin):
     list_display = ('period', 'created_at', 'member', 'response')

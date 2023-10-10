@@ -14,6 +14,14 @@ from .member import Member, Role
 def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
+
+class EventNotificationsAvailable(BasePositionModel):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
 class Event(BaseModel):
     TYPES = (
         ('meeting', 'Meeting'),
@@ -53,6 +61,8 @@ class Event(BaseModel):
     informant = models.CharField(max_length=255, blank=True, null=True)
     informant_contact = models.CharField(max_length=255, blank=True, null=True)
     radio_channel = models.CharField(max_length=255, blank=True, null=True)
+    handling_unit = models.CharField(max_length=255, blank=True, null=True)
+    notifications_made = models.ManyToManyField(EventNotificationsAvailable)
     status = models.CharField(
         choices=STATUS_TYPES, max_length=255,
         blank=True, null=True)
@@ -67,7 +77,7 @@ class Event(BaseModel):
         help_text='Published events are viewable by the public.')
     gcal_id = models.CharField(max_length=255, blank=True, null=True)
     gcal_id_private = models.CharField(max_length=255, blank=True, null=True)
-    history = HistoricalRecords()
+    history = HistoricalRecords(m2m_fields=[notifications_made])
 
     def save(self, *args, **kwargs):
         super(Event, self).save(*args, **kwargs)

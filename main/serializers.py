@@ -315,7 +315,9 @@ class LocationSerializer(serializers.Serializer):
 class CalloutMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
-        fields = ('id', 'first_name', 'last_name', 'full_name', 'username')
+        fields = ('id', 'first_name', 'last_name', 'full_name', 'username',
+                  'mobile_phone')
+        read_only_fields = ('mobile_phone',)
 
 class CalloutResponseSerializer(serializers.ModelSerializer):
     #event = serializers.CharField(source='period.event.id', allow_null=True)
@@ -342,18 +344,23 @@ class CalloutPeriodSerializer(serializers.ModelSerializer):
         fields = ('id', 'op', 'responses')
 
 
+class EventNotificationsAvailableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventNotificationsAvailable
+        fields = ('id', 'position', 'name')
+
 class CalloutListSerializer(serializers.ModelSerializer):
     location = LocationSerializer(source='*', required=False)
     my_response = serializers.SerializerMethodField()
     responded = serializers.SerializerMethodField()
+    log_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
         read_only_fields = ('created_at',)
-        fields = ('id', 'title', 'operation_type', 'description',
+        fields = ('id', 'title', 'operation_type',
                   'my_response', 'responded',
-                  'radio_channel', 'status', 'resolution',
-                   'location',
+                  'log_count', 'status', 'location',
         ) + read_only_fields
 
     def save(self, **kwargs):
@@ -377,11 +384,17 @@ class CalloutListSerializer(serializers.ModelSerializer):
     def get_responded(self, obj):
         return CalloutResponse.objects.filter(period__event=obj).values('response').annotate(total=Count('response')).order_by()
 
+    def get_log_count(self, obj):
+        return obj.calloutlog_set.all().count()
+
 class CalloutDetailSerializer(CalloutListSerializer):
-    log_count = serializers.SerializerMethodField()
     last_log_timestamp = serializers.SerializerMethodField()
     operational_periods = CalloutPeriodSerializer(
         source='period_set', many=True, read_only=True)
+    notifications_made = serializers.SlugRelatedField(
+        many=True,
+        queryset=EventNotificationsAvailable.objects.all(),
+        slug_field='name')
 
     class Meta:
         model = Event
@@ -390,14 +403,12 @@ class CalloutDetailSerializer(CalloutListSerializer):
                   'my_response', 'responded',
                   'subject', 'subject_contact',
                   'informant', 'informant_contact',
+                  'handling_unit', 'notifications_made',
                   'radio_channel', 'status', 'resolution',
                   'log_count', 'last_log_timestamp',
                    'location',
                   'operational_periods',
         ) + read_only_fields
-
-    def get_log_count(self, obj):
-        return obj.calloutlog_set.all().count()
 
     def get_last_log_timestamp(self, obj):
         latest = obj.calloutlog_set.filter(event=obj).order_by('-id').first()

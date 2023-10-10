@@ -231,6 +231,10 @@ class MemberPhotoViewSet(BaseViewSet):
     search_fields = ('member__username', )
 
 # App
+class EventNotificationsAvailableViewSet(CreateListModelMixin, BaseViewSet):
+    queryset = EventNotificationsAvailable.objects.all()
+    serializer_class = EventNotificationsAvailableSerializer
+
 class CreateListNestedViewSetMixin(CreateListModelMixin, NestedViewSetMixin):
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
