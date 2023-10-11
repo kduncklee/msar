@@ -393,6 +393,7 @@ class CalloutDetailSerializer(CalloutListSerializer):
         source='period_set', many=True, read_only=True)
     notifications_made = serializers.SlugRelatedField(
         many=True,
+        allow_null=True,
         queryset=EventNotificationsAvailable.objects.all(),
         slug_field='name')
 
