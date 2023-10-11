@@ -83,19 +83,6 @@ class Event(BaseModel):
         super(Event, self).save(*args, **kwargs)
         self.add_period(True)
 
-        if self.type == 'operation':
-            from .message import CalloutLog
-            update = 'Callout updated.'
-            history = self.history.all()[:2]
-            delta = history[0].diff_against(history[1])
-            for change in delta.changes:
-                update += "\n{} changed from '{}' to '{}'".format(
-                    change.field, change.old, change.new)
-            CalloutLog.objects.create(
-                type='response', event=self,
-                member=history[0].history_user,
-                message='', update=update)
-
     def __str__(self):
         return self.title
 
