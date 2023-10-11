@@ -62,7 +62,7 @@ class Event(BaseModel):
     informant_contact = models.CharField(max_length=255, blank=True, null=True)
     radio_channel = models.CharField(max_length=255, blank=True, null=True)
     handling_unit = models.CharField(max_length=255, blank=True, null=True)
-    notifications_made = models.ManyToManyField(EventNotificationsAvailable)
+    notifications_made = models.ManyToManyField(EventNotificationsAvailable, blank=True )
     status = models.CharField(
         choices=STATUS_TYPES, max_length=255,
         blank=True, null=True)
