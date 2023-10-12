@@ -394,7 +394,8 @@ class CalloutDetailSerializer(CalloutListSerializer):
     notifications_made = serializers.SlugRelatedField(
         many=True,
         queryset=EventNotificationsAvailable.objects.all(),
-        slug_field='name')
+        slug_field='name',
+        required=False)
 
     class Meta:
         model = Event
