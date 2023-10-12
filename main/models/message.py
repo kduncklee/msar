@@ -465,17 +465,13 @@ class OutboundEmail(OutboundMessage):
                 self.status = 'No server status'
         self.save()
 
+
 class CalloutResponse(BaseModel):
     period = models.ForeignKey(Period, on_delete=models.CASCADE)
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     response = models.CharField(max_length=255)
     history = HistoricalRecords()
 
-    def save(self, *args, **kwargs):
-        super(CalloutResponse, self).save(*args, **kwargs)
-        CalloutLog.objects.create(
-            type='response', event=self.period.event, member=self.member,
-            message='', update=self.response)
 
 class CalloutLog(BaseModel):
     TYPES = (
