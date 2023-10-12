@@ -301,7 +301,7 @@ class LocationCoordinatesSerializer(serializers.Serializer):
     long = serializers.CharField(source='lon', required=False)
 
 class LocationAddressSerializer(serializers.Serializer):
-    address = serializers.CharField(source='location_address', required=False)
+    street = serializers.CharField(source='location_address', required=False)
     city = serializers.CharField(source='location_city', required=False)
     state = serializers.CharField(source='location_state', required=False)
     zip = serializers.CharField(source='location_zip', required=False)
