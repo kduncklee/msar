@@ -257,6 +257,7 @@ class CalloutFilter(filters.FilterSet):
 
 class CalloutViewSet(CreateListModelMixin, BaseViewSet):
     queryset = Event.objects.filter(type='operation').prefetch_related(
+        'created_by',
         'period_set',
         'period_set__calloutresponse_set',
         'period_set__calloutresponse_set__member',
@@ -269,6 +270,9 @@ class CalloutViewSet(CreateListModelMixin, BaseViewSet):
         elif getattr(self, 'action', None) == 'respond':
             return CalloutResponsePostSerializer
         return CalloutDetailSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(created_by_id=self.request.user.id)
 
     @action(methods=['post'], detail=True)
     def respond(self, request, pk=None):

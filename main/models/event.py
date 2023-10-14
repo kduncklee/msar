@@ -72,6 +72,7 @@ class Event(BaseModel):
     all_day = models.BooleanField(
         default=False,
         help_text='All Day events do not have a start or end time.')
+    created_by = models.ForeignKey(Member, null=True, on_delete=models.SET_NULL)
     published = models.BooleanField(
         default=False,
         help_text='Published events are viewable by the public.')

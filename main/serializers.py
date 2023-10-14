@@ -396,10 +396,11 @@ class CalloutDetailSerializer(CalloutListSerializer):
         queryset=EventNotificationsAvailable.objects.all(),
         slug_field='name',
         required=False)
+    created_by = CalloutMemberSerializer(required=False, read_only=True)
 
     class Meta:
         model = Event
-        read_only_fields = ('created_at',)
+        read_only_fields = ('created_by', 'created_at',)
         fields = ('id', 'title', 'operation_type', 'description',
                   'my_response', 'responded',
                   'subject', 'subject_contact',
@@ -407,7 +408,7 @@ class CalloutDetailSerializer(CalloutListSerializer):
                   'handling_unit', 'notifications_made',
                   'radio_channel', 'status', 'resolution',
                   'log_count', 'last_log_timestamp',
-                   'location',
+                  'location',
                   'operational_periods',
         ) + read_only_fields
 
