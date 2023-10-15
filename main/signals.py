@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from main.models import Event, EventNotificationsAvailable, CalloutResponse, CalloutLog
 
 @receiver(post_save, sender=CalloutResponse)
-def event_post_save_handler(sender, instance, created, **kwargs):
+def response_post_save_handler(sender, instance, created, **kwargs):
     message = '{} responded {}'.format(instance.member, instance.response)
     CalloutLog.objects.create(
         type='response', event=instance.period.event,
