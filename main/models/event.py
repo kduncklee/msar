@@ -30,7 +30,8 @@ class Event(BaseModel):
         ('community', 'Community'))
     OPERATION_TYPES = (
         ('search', 'Search'),
-        ('rescue', 'Rescue'))
+        ('rescue', 'Rescue'),
+        ('information', 'Information'))
     STATUS_TYPES = (
         ('active', 'Active'),
         ('resolved', 'Resolved'),
