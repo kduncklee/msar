@@ -297,17 +297,23 @@ class MemberPhotoSerializer(WriteOnceMixin, CreatePermModelSerializer):
 # For App
 
 class LocationCoordinatesSerializer(serializers.Serializer):
-    lat = serializers.CharField(required=False)
-    long = serializers.CharField(source='lon', required=False)
+    lat = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    long = serializers.CharField(source='lon',
+        required=False, allow_blank=True, allow_null=True)
 
 class LocationAddressSerializer(serializers.Serializer):
-    street = serializers.CharField(source='location_address', required=False)
-    city = serializers.CharField(source='location_city', required=False)
-    state = serializers.CharField(source='location_state', required=False)
-    zip = serializers.CharField(source='location_zip', required=False)
+    street = serializers.CharField(source='location_address',
+         required=False, allow_blank=True, allow_null=True)
+    city = serializers.CharField(source='location_city',
+         required=False, allow_blank=True, allow_null=True)
+    state = serializers.CharField(source='location_state',
+         required=False, allow_blank=True, allow_null=True)
+    zip = serializers.CharField(source='location_zip',
+         required=False, allow_blank=True, allow_null=True)
 
 class LocationSerializer(serializers.Serializer):
-    text = serializers.CharField(source='location', required=False)
+    text = serializers.CharField(source='location',
+         required=False, allow_blank=True, allow_null=True)
     coordinates = LocationCoordinatesSerializer(source='*', required=False)
     address = LocationAddressSerializer(source='*', required=False)
 

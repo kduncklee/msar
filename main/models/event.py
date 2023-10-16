@@ -46,7 +46,7 @@ class Event(BaseModel):
     description_private = models.TextField(
         blank=True, null=True, verbose_name='Additional private description',
         help_text='This text will be added to the description text above.')
-    location = models.CharField(max_length=255)
+    location = models.CharField(max_length=255, blank=True, null=True)
     location_private = models.CharField(
         max_length=255, blank=True, default='',
         verbose_name='Private version of location',
@@ -63,13 +63,13 @@ class Event(BaseModel):
     informant_contact = models.CharField(max_length=255, blank=True, null=True)
     radio_channel = models.CharField(max_length=255, blank=True, null=True)
     handling_unit = models.CharField(max_length=255, blank=True, null=True)
-    notifications_made = models.ManyToManyField(EventNotificationsAvailable)
+    notifications_made = models.ManyToManyField(EventNotificationsAvailable, blank=True)
     status = models.CharField(
         choices=STATUS_TYPES, max_length=255,
         blank=True, null=True)
     resolution = models.CharField(max_length=255, blank=True, null=True)
-    start_at = models.DateTimeField(null=True)
-    finish_at = models.DateTimeField(null=True)
+    start_at = models.DateTimeField(blank=True, null=True)
+    finish_at = models.DateTimeField(blank=True, null=True)
     all_day = models.BooleanField(
         default=False,
         help_text='All Day events do not have a start or end time.')
