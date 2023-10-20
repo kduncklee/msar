@@ -427,7 +427,7 @@ class CalloutDetailSerializer(CalloutListSerializer):
 
 class CalloutLogSerializer(serializers.ModelSerializer):
     member = CalloutMemberSerializer(required=False)
-    location = LocationCoordinatesSerializer(source='*', required=False)
+    location = LocationSerializer(source='*', required=False)
 
     class Meta:
         model = CalloutLog
