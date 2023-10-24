@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 import raven
 from distutils.util import strtobool
+from firebase_admin import initialize_app
+
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
@@ -49,6 +51,7 @@ INSTALLED_APPS = [
     'django_q',
     'django_twilio',
     'dynamic_preferences',
+    "fcm_django",
     'imagekit',
     'oidc_provider',
     'raven.contrib.django.raven_compat',
@@ -268,6 +271,11 @@ DEFAULT_FROM_EMAIL = os.environ['MAILGUN_EMAIL_FROM']
 
 # Used for tests
 GOOGLE_CREDENTIALS_FILE = os.environ.get('GOOGLE_CREDENTIALS_FILE', '')
+
+if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'):
+    FIREBASE_APP = initialize_app()
+else:
+    FIREBASE_APP = None
 
 Q_CLUSTER = {
     'workers': 1,

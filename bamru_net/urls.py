@@ -26,6 +26,7 @@ import rest_framework.authtoken.views
 #from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from rest_framework_extensions import routers
+from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet
 
 router = routers.ExtendedDefaultRouter()
 router.register(r'events', views.EventViewSet, basename='event')
@@ -43,6 +44,7 @@ router.register(r'inbound_sms', views.InboundSmsViewSet)
 router.register(r'event_notifications', views.EventNotificationsAvailableViewSet, basename='event_notification')
 callouts_router = router.register(r'callouts', views.CalloutViewSet, basename='callout')
 callouts_router.register(r'log', views.CalloutLogViewSet, basename='callout-log', parents_query_lookups=['event'])
+router.register('devices', FCMDeviceAuthorizedViewSet)
 
 
 urlpatterns = [
