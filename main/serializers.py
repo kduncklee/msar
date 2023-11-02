@@ -42,7 +42,13 @@ class CreatePermModelSerializer(serializers.ModelSerializer):
         return super(CreatePermModelSerializer, self).create(validated_data)
 
 
+class MemberStatusTypeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = MemberStatusType
+        fields = ('id', 'short', 'long', 'position')
+
 class MemberSerializer(serializers.HyperlinkedModelSerializer):
+    status = serializers.StringRelatedField()
     class Meta:
         model = Member
         read_only_fields = ('username', 'full_name', 'status', 'status_order',
@@ -55,6 +61,7 @@ class MemberSerializer(serializers.HyperlinkedModelSerializer):
 
 class ParticipantMemberSerializer(serializers.HyperlinkedModelSerializer):
     # does not include is_unavailable since we cannot prefetch it
+    status = serializers.StringRelatedField()
     class Meta:
         model = Member
         read_only_fields = ('username', 'full_name', 'status', 'status_order',
@@ -74,6 +81,7 @@ class BareUnavailableSerializer(WriteOnceMixin, serializers.ModelSerializer):
 
 class MemberUnavailableSerializer(serializers.HyperlinkedModelSerializer):
     busy = serializers.SerializerMethodField()
+    status = serializers.StringRelatedField()
 
     def get_busy(self, member):
         busy = member.filtered_unavailable_set
@@ -96,6 +104,7 @@ class CertSerializer(WriteOnceMixin, CreatePermModelSerializer):
 
 class MemberCertSerializer(serializers.HyperlinkedModelSerializer):
     certs = serializers.SerializerMethodField()
+    status = serializers.StringRelatedField()
 
     def get_certs(self, member):
         # we prefetch certs in the viewset, just sort in python to avoid another query per member

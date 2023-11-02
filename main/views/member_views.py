@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.views import generic
 from rules.contrib.views import PermissionRequiredMixin
 
-from main.models import Address, Cert, Email, EmergencyContact,Member, Phone, Unavailable
+from main.models import Address, Cert, Email, EmergencyContact, Member, MemberStatusType, Phone, Unavailable
 from main.views.file_views import download_file_helper
 
 from django.forms.widgets import HiddenInput, Select, Widget, SelectDateWidget
@@ -29,8 +29,15 @@ logger = logging.getLogger(__name__)
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.utils.html import escape
 
+class MemberStatusTypeMixin:
+    def get_context_data(self, *args, **kwargs):
+        context = super(MemberStatusTypeMixin, self
+                        ).get_context_data(*args, **kwargs)
+        context['member_status_types'] = (
+            MemberStatusType.displayed.all().order_by('position'))
+        return context
 
-class MemberListView(LoginRequiredMixin, generic.ListView):
+class MemberListView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):
     template_name = 'member_list.html'
     context_object_name = 'member_list'
 
@@ -215,7 +222,7 @@ class MemberAddView(PermissionRequiredMixin, generic.edit.FormView):
                 'username': '{} {}'.format(
                     form.cleaned_data['first_name'],
                     form.cleaned_data['last_name']).lower(),
-                'status': 'G',
+                'status': MemberStatusType.objects.get(is_default=True),
                 'is_active': False,
             })
         if created:
@@ -326,7 +333,7 @@ class CertCreateView(LoginRequiredMixin, CertEditMixin, generic.edit.CreateView)
         return context
 
 
-class CertListView(LoginRequiredMixin, generic.ListView):
+class CertListView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):
     template_name = 'cert_list.html'
     context_object_name = 'member_list'
 
@@ -337,11 +344,10 @@ class CertListView(LoginRequiredMixin, generic.ListView):
         for idx, t in enumerate(Cert.TYPES):
             cert_lookup[t[0]] = idx
         qs = Member.members.prefetch_related('cert_set')
-        qs = qs.filter(status__in=Member.CURRENT_MEMBERS).order_by('id')
+        qs = qs.order_by('id')
 
         for m in qs:
             m.certs = [{'cert':None, 'count':0} for x in cert_lookup]
-            #m.cert_count = cert_count.copy()
             for c in m.cert_set.all():
                 idx = cert_lookup[c.type]
                 prev = m.certs[idx]['cert']
@@ -354,7 +360,6 @@ class CertListView(LoginRequiredMixin, generic.ListView):
                 ):
                     m.certs[idx]['cert'] = c
                 m.certs[idx]['count'] += 1
-                #m.cert_count[idx] += 1
         return qs
 
     def get_context_data(self, **kwargs):
@@ -369,7 +374,7 @@ def cert_file_download_view(request, cert, **kwargs):
     return download_file_helper(c.cert_file.url)
 
 
-class AvailableListView(LoginRequiredMixin, generic.ListView):
+class AvailableListView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):
     template_name = 'available_list.html'
     context_object_name = 'member_list'
 
@@ -391,14 +396,14 @@ class AvailableListView(LoginRequiredMixin, generic.ListView):
         today = self.date
         unavailable_set = Unavailable.objects.filter(
             end_on__gte=today).order_by('start_on')
-        qs = Member.objects.prefetch_related(
+        qs = Member.members.prefetch_related(
             Prefetch('unavailable_set',
                      queryset=unavailable_set,
                      to_attr='unavailable_filtered'),
             'role_set',
         )
 
-        qs = qs.filter(status__in=Member.AVAILABLE_MEMBERS).order_by('id')
+        qs = qs.filter(status__is_available=True).order_by('id')
 
         for m in qs:
             m.days = ['' for x in range(self.days)]
