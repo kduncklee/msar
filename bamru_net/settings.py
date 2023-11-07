@@ -284,6 +284,7 @@ if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'):
     FIREBASE_APP = initialize_app()
 else:
     FIREBASE_APP = None
+EXPO_APP = True
 
 Q_CLUSTER = {
     'workers': 1,
