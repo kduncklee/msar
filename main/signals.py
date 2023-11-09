@@ -42,6 +42,7 @@ def event_post_save_handler(sender, instance, created, **kwargs):
     if instance.type != 'operation':
         return
     if created:
+        callout_created_handler(instance)
         return
     update = 'Callout updated.'
     history = instance.history.all()[:2]
