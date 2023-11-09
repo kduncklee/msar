@@ -78,9 +78,19 @@ class PeriodAdmin(SimpleHistoryAdmin):
         ]
 
 
+@admin.register(Patrol)
+class PatrolAdmin(SimpleHistoryAdmin):
+    list_display = ('member', 'date',)
+
+
 @admin.register(EventNotificationsAvailable)
 class EventNotificationsAvailableAdmin(admin.ModelAdmin):
     list_display = ('name',)
+
+
+@admin.register(CalloutResponseOption)
+class CalloutResponseOptionAdmin(admin.ModelAdmin):
+    list_display = ('response', 'is_attending')
 
 
 @admin.register(CalloutResponse)

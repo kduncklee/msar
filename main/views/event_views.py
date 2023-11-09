@@ -251,3 +251,6 @@ class PeriodParticipantCreateView(LoginRequiredMixin, MemberStatusTypeMixin, gen
         context['period_position'] = period.position
         context['event_id'] = period.event.id
         return context
+
+class EventCalendarView(LoginRequiredMixin, generic.base.TemplateView):
+    template_name = 'event_calendar.html'

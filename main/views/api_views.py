@@ -99,6 +99,8 @@ class MemberCertViewSet(BaseViewSet):
 class EventFilter(filters.FilterSet):
     start_at = filters.DateFromToRangeFilter()
     finish_at = filters.DateFromToRangeFilter()
+    start_at_iso = filters.IsoDateTimeFromToRangeFilter(field_name='start_at')
+    finish_at_iso = filters.IsoDateTimeFromToRangeFilter(field_name='finish_at')
     class Meta:
         model = Event
         fields = ('type', 'start_at', 'finish_at', 'published',)
@@ -154,6 +156,15 @@ class PeriodViewSet(BaseViewSet):
 class ParticipantViewSet(CreateListModelMixin, BaseViewSet):
     queryset = Participant.objects.all()
     serializer_class = PeriodParticipantSerializer
+
+
+class PatrolViewSet(CreateListModelMixin, BaseViewSet):
+    queryset = Patrol.objects.all()
+    serializer_class = PatrolSerializer
+    filterset_fields = ('member', 'date')
+
+    def perform_create(self, serializer):
+        serializer.save(member_id=self.request.user.id)
 
 
 class DoViewSet(BaseViewSet):

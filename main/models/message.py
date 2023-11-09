@@ -466,6 +466,11 @@ class OutboundEmail(OutboundMessage):
         self.save()
 
 
+class CalloutResponseOption(BaseModel):
+    response = models.CharField(max_length=255)
+    is_attending = models.BooleanField(default=True)
+
+
 class CalloutResponse(BaseModel):
     period = models.ForeignKey(Period, on_delete=models.CASCADE)
     member = models.ForeignKey(Member, on_delete=models.CASCADE)

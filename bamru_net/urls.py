@@ -32,6 +32,7 @@ router = routers.ExtendedDefaultRouter()
 router.register(r'events', views.EventViewSet, basename='event')
 router.register(r'periods', views.PeriodViewSet)
 router.register(r'participants', views.ParticipantViewSet)
+router.register(r'patrols', views.PatrolViewSet)
 router.register(r'member_status_types', views.MemberStatusTypeViewSet)
 router.register(r'members', views.MemberViewSet, basename='member')
 router.register(r'member_certs', views.MemberCertViewSet, basename='member-cert')
@@ -60,6 +61,7 @@ urlpatterns = [
          views.EventPeriodAddView.as_view(), name='event_period_add'),
     path('event/<int:event_id>/messages/', views.MessageEventView.as_view(),
          name='message_event'),
+    path('event/calendar/', views.EventCalendarView.as_view(), name='event_calendar'),
 
     path('event/participant/add/<int:period>/',
          views.PeriodParticipantCreateView.as_view(), name='period_participant_add'),

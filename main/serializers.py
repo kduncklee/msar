@@ -209,6 +209,14 @@ class PeriodParticipantSerializer(serializers.ModelSerializer):
         return instance
 
 
+
+class PatrolSerializer(serializers.ModelSerializer):
+    member = ParticipantMemberSerializer(required=False)
+    class Meta:
+        model = Patrol
+        fields = ('id', 'member', 'date', 'description',)
+
+
 class DistributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Distribution

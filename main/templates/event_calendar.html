@@ -1,0 +1,170 @@
+{% extends 'base_generic.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Calendar{% endblock title %}
+
+{% block subheader %}
+<strong>
+  <a href="{% url 'event_list' %}">Events</a> &gt; Calendar
+</strong>
+{% endblock subheader %}
+
+{% block content %}
+<main role="main" class="container-fluid">
+  <div id="content">
+    <div id='calendar'></div>
+  </div>
+</main>
+{% endblock content %}
+
+{% block js %}
+{{ block.super }}
+
+
+    <meta charset='utf-8' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
+    <script>
+
+function RefetchPatrols(calendar) {
+  var patrolSource = calendar.getEventSourceById('patrols');
+  patrolSource.refetch();
+}
+
+function AddPatrol(date, calendar) {
+  var data = {
+    date: date,
+    description: ""
+  };
+  $.ajax({
+    method: 'POST',
+    contentType: 'application/x-www-form-urlencoded',
+    url: '{% url "patrol-list" %}',
+    data: data,
+    context: calendar,
+    success: function (response) {
+      console.log('PostAction success.');
+      RefetchPatrols(this);
+    },
+    error: function (xhr) {
+      console.log('PostAction failed');
+      console.log(xhr);
+      if (xhr.responseText) alert(xhr.responseText);
+      return false;
+    }
+  })
+}
+
+function DeletePatrol (id, calendar) {
+  $.ajax({
+    method: 'DELETE',
+    contentType: 'application/x-www-form-urlencoded',
+    url: '{% url "patrol-list" %}' + id + '/',
+    context: calendar,
+    success: function (response) {
+      console.log('DeletePatrol success.');
+      RefetchPatrols(this);
+    },
+    error: function (xhr) {
+      console.log('DeletePatrol failed');
+      console.log(xhr);
+      if (xhr.responseText) alert(xhr.responseText);
+      return false;
+    }
+  })
+}
+
+function HandleDateClick(info) {
+  console.log('clicked on ' + info.dateStr);
+  var idate = info.date;
+  var events = this.getEvents();
+  for (const e of events) {
+    var patrol = e.extendedProps.patrol;
+    var edate = e.start;
+    if (patrol &&
+        (idate.getFullYear() == edate.getFullYear()) &&
+        (idate.getMonth()    == edate.getMonth()) &&
+        (idate.getDate()     == edate.getDate()) &&
+        (e.extendedProps.member.id == {{ user.id}})
+       ) {
+      console.log(' found');
+      return;
+    }
+  }
+  console.log(' not found');
+  AddPatrol(info.dateStr, this);
+}
+
+function HandleEventClick(info) {
+  if (info.event.extendedProps.patrol) {
+    if (info.event.extendedProps.member.id == {{ user.id }}) {
+      console.log('clicked on ' + info.event);
+      DeletePatrol(info.event.id, this);
+    }
+  }
+}
+
+var eventSources = [
+  {
+    id: 'events',
+    url: '{% url 'event-list' %}',
+    startParam: 'finish_at_iso_after',
+    endParam: 'start_at_iso_before',
+    success: function(response) {
+      return response.results.map(
+        function(x) {
+          return {
+            id: x.id,
+            title: x.title,
+            start: x.start_at,
+            end: x.end_at,
+            allDay: x.all_day
+          };
+        }
+      );
+    }
+  },
+  {
+    id: 'patrols',
+    url: '{% url 'patrol-list' %}',
+    startParam: 'date_after',
+    endParam: 'date_before',
+    success: function(response) {
+      return response.results.map(
+        function(x) {
+          return {
+            id: x.id,
+            title: x.member.username,
+            start: x.date,
+            end: x.date,
+            allDay: true,
+            extendedProps: {
+              patrol: true,
+              member: x.member,
+              description: x.description
+            }
+          };
+        }
+      );
+    }
+  },
+];
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.getElementById('calendar');
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    eventSources: eventSources,
+    dateClick: HandleDateClick,
+    eventClick: HandleEventClick
+  });
+  calendar.render();
+
+  //calendar.on('dateClick', HandleDateClick);
+  //calendar.on('eventClick', HandleEventClick);
+});
+
+
+    </script>
+
+{% endblock js %}

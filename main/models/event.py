@@ -190,3 +190,9 @@ class Participant(BaseModel):
     @property
     def hours(self):
         return self.timedelta.total_seconds() / 3600
+
+
+class Patrol(BaseModel):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    date = models.DateField()
+    description = models.TextField(blank=True, null=True)
