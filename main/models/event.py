@@ -196,3 +196,8 @@ class Patrol(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     date = models.DateField()
     description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['member', 'date'], name='unique_patrol')
+        ]
