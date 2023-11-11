@@ -484,7 +484,8 @@ class CalloutLog(BaseModel):
         ('response', 'Response'),
         ('system', 'System'))
     type = models.CharField(choices=TYPES, max_length=255)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE,
+                              blank=True, null=True) # null for announcement
     member = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True)
     message = models.TextField()
     lat = models.CharField(max_length=255, blank=True, null=True)

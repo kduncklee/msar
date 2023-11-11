@@ -323,3 +323,11 @@ class CalloutLogViewSet(CreateListNestedViewSetMixin, BaseViewSet):
     def perform_create(self, serializer):
         serializer.save(member_id=self.request.user.id)
 
+
+class AnnouncementLogViewSet(CalloutLogViewSet):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(event__isnull=True)
+
+    def perform_create(self, serializer):
+        serializer.save(member_id=self.request.user.id, event=None)

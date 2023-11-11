@@ -448,5 +448,5 @@ class CalloutLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CalloutLog
-        read_only_fields = ('created_at',)
+        read_only_fields = ('created_at','event')
         fields = ('id', 'type', 'event', 'member', 'message', 'location', 'update') + read_only_fields
