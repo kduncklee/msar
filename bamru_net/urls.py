@@ -46,6 +46,7 @@ router.register(r'inbound_sms', views.InboundSmsViewSet)
 router.register(r'event_notifications', views.EventNotificationsAvailableViewSet, basename='event_notification')
 callouts_router = router.register(r'callouts', views.CalloutViewSet, basename='callout')
 callouts_router.register(r'log', views.CalloutLogViewSet, basename='callout-log', parents_query_lookups=['event'])
+router.register(r'announcement/log', views.AnnouncementLogViewSet, basename='announcemnt-log')
 router.register('devices', FCMDeviceAuthorizedViewSet)
 
 
