@@ -386,12 +386,9 @@ class CalloutListSerializer(serializers.ModelSerializer):
                   'log_count', 'status', 'location',
         ) + read_only_fields
 
-    def save(self, **kwargs):
-        instance = super().save(**kwargs)
-        if not self.instance.type:
-            self.instance.type = 'operation'
-            self.instance.save()
-        return instance
+    def create(self, validated_data, **kwargs):
+        validated_data['type'] = 'operation'
+        return super().create(validated_data, **kwargs)
 
     def get_my_response(self, obj):
         period = Period.objects.filter(event=obj).order_by('position').first()

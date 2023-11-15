@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from main.lib import push
-from main.models import Event, EventNotificationsAvailable, CalloutResponseOption, CalloutResponse, CalloutLog, Participant
+from main.models import Event, EventNotificationsAvailable, CalloutResponseOption, CalloutResponse, CalloutLog, Member, Participant
 
 @receiver(post_save, sender=CalloutResponse)
 def response_post_save_handler(sender, instance, created, **kwargs):
@@ -29,13 +29,14 @@ def response_post_save_handler(sender, instance, created, **kwargs):
 
 
 def callout_created_handler(instance):
-    data = {
-        "id": instance.id,
-        "title": instance.title,
-    }
+    member_ids = Member.objects.filter(status__is_available=True
+                                       ).values_list('id', flat=True)
     push.send_push_message(
-        title = "MSAR: New Callout",
-        body = instance.title)
+        title = "New Callout",
+        body = instance.title,
+        data = { "url": "view-callout", "id": instance.id, "type": "created"},
+        member_ids = member_ids)
+
 
 @receiver(post_save, sender=Event)
 def event_post_save_handler(sender, instance, created, **kwargs):
@@ -84,7 +85,8 @@ def log_post_save_handler(sender, instance, created, **kwargs):
     participants = Participant.objects.filter(period__event=instance.event)
     member_ids = [p.member_id for p in participants]
     push.send_push_message(
-        title = "MSAR: New log message",
+        title = "Callout log updated",
         body = body,
+        data = { "url": "view-callout", "id": instance.event, "type": "log"},
         member_ids = member_ids)
 
