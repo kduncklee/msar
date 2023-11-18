@@ -53,7 +53,7 @@ def send_push_message(title, body, data=None, member_ids=None):
         data = {'title': title, 'body': body}
     if len(body) > 120:
         body = body[:119] + '…'
-    print('Sending push message: {}: {}'.format(title, body))
+    print('Sending push message: {}: "{}" filtered to {}'.format(title, body, member_ids))
     if settings.FIREBASE_APP:
         send_push_message_firebase(title, body, data, member_ids)
     elif settings.EXPO_APP:

@@ -29,8 +29,8 @@ def response_post_save_handler(sender, instance, created, **kwargs):
 
 
 def callout_created_handler(instance):
-    member_ids = Member.objects.filter(status__is_available=True
-                                       ).values_list('id', flat=True)
+    member_ids = list(Member.objects.filter(
+        status__is_available=True).values_list('id', flat=True))
     push.send_push_message(
         title = "New Callout",
         body = instance.title,
@@ -82,11 +82,18 @@ def log_post_save_handler(sender, instance, created, **kwargs):
     body = instance.message
     if not body:
         body = instance.update
-    participants = Participant.objects.filter(period__event=instance.event)
-    member_ids = [p.member_id for p in participants]
+    if instance.event:  # normal callout log
+        member_ids = list(Participant.objects
+                          .filter(period__event=instance.event)
+                          .exclude(member_id=instance.member_id)
+                          .values_list('member_id', flat=True))
+    else:  # announcement
+        member_ids = list(Member.members
+                          .exclude(id=instance.member_id)
+                          .values_list('id', flat=True))
     push.send_push_message(
         title = "Callout log updated",
         body = body,
-        data = { "url": "view-callout", "id": instance.event, "type": "log"},
+        data = { "url": "view-callout", "id": instance.event.id, "type": "log"},
         member_ids = member_ids)
 
