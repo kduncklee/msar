@@ -88,3 +88,7 @@ for model in ['event', 'period', 'participant', ]:
     rules.add_perm('main.view_%s' % model, rules.is_authenticated)
     rules.add_perm('main.change_%s' % model, rules.is_authenticated)
     rules.add_perm('main.delete_%s' % model, rules.is_authenticated)
+
+for model in ['calloutresponse', 'calloutlog', ]:
+    rules.add_perm('main.add_%s' % model, rules.is_authenticated)
+    rules.add_perm('main.view_%s' % model, rules.is_authenticated)

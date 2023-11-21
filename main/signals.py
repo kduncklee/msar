@@ -77,8 +77,9 @@ def m2m_changed_handler(sender, instance, action, pk_set, **kwargs):
 
 @receiver(post_save, sender=CalloutLog)
 def log_post_save_handler(sender, instance, created, **kwargs):
+    title = "Callout log updated"
     if instance.type == 'system':
-        return
+        title = "Callout updated"
     body = instance.message
     if not body:
         body = instance.update
@@ -92,7 +93,7 @@ def log_post_save_handler(sender, instance, created, **kwargs):
                           .exclude(id=instance.member_id)
                           .values_list('id', flat=True))
     push.send_push_message(
-        title = "Callout log updated",
+        title = title,
         body = body,
         data = { "url": "view-callout", "id": instance.event.id, "type": "log"},
         member_ids = member_ids)
