@@ -24,7 +24,7 @@ def send_push_message_firebase(title, body, data=None, member_ids=None):
         devices = devices.filter(user_id__in=member_ids)
     devices.send_message(m)
 
-def send_push_message_expo(title, body, data=None, member_ids=None):
+def send_push_message_expo(title, body, data=None, member_ids=None, channel=None):
     devices = FCMDevice.objects.filter(registration_id__startswith=EXPO_ID_PREFIX)
     if member_ids is not None:
         devices = devices.filter(user_id__in=member_ids)
@@ -38,6 +38,8 @@ def send_push_message_expo(title, body, data=None, member_ids=None):
         'data': data,
         'priority': 'high',
     }
+    if channel is not None:
+        message['channelId'] = channel
     session = requests.Session()
     session.headers.update({
         'accept': 'application/json',
@@ -48,7 +50,7 @@ def send_push_message_expo(title, body, data=None, member_ids=None):
     print(response)
     print(response.json())
 
-def send_push_message(title, body, data=None, member_ids=None):
+def send_push_message(title, body, data=None, member_ids=None, channel=None):
     if data is None:
         data = {'title': title, 'body': body}
     if len(body) > 120:
@@ -57,6 +59,6 @@ def send_push_message(title, body, data=None, member_ids=None):
     if settings.FIREBASE_APP:
         send_push_message_firebase(title, body, data, member_ids)
     elif settings.EXPO_APP:
-        send_push_message_expo(title, body, data, member_ids)
+        send_push_message_expo(title, body, data, member_ids, channel)
     else:
         print('Skipping push message for "{}"'.format(title))

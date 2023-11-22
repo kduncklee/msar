@@ -165,8 +165,13 @@ class TestApi(APITestCase):
                                     {'status': 'resolved', 'resolution': 'ok'})
         # print(response.data)
         self.assertEqual(response.status_code, 200)
-        mock_send_push_message.assert_called_once()
-        args = mock_send_push_message.call_args.args
+        mock_send_push_message.assert_called()
+        args = mock_send_push_message.call_args_list[0].args
+        self.assertEqual(args[0], 'Callout Resolved')
+        self.assertEqual(args[1], 'ok')
+        self.assertIn(self.user.id, args[3])
+        self.assertIn(self.other_user.id, args[3])
+        args = mock_send_push_message.call_args_list[1].args
         self.assertEqual(args[0], 'Callout updated')
         self.assertRegexpMatches(args[1], 'status')
         self.assertEqual(args[3], [self.other_user.id])

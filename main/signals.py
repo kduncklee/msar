@@ -28,14 +28,29 @@ def response_post_save_handler(sender, instance, created, **kwargs):
             p.delete()
 
 
-def callout_created_handler(instance):
-    member_ids = list(Member.objects.filter(
+def available_member_ids():
+    return list(Member.objects.filter(
         status__is_available=True).values_list('id', flat=True))
+
+
+def callout_created_handler(instance, title="New Callout"):
+    member_ids = available_member_ids()
     push.send_push_message(
-        title = "New Callout",
+        title = title,
         body = instance.title,
         data = { "url": "view-callout", "id": instance.id, "type": "created"},
-        member_ids = member_ids)
+        member_ids = member_ids,
+        channel='callout')
+
+
+def callout_resolved_handler(instance):
+    member_ids = available_member_ids()
+    push.send_push_message(
+        title = "Callout Resolved",
+        body = instance.resolution,
+        data = { "url": "view-callout", "id": instance.id, "type": "log"},
+        member_ids = member_ids,
+        channel='callout-resolved')
 
 
 @receiver(post_save, sender=Event)
@@ -51,6 +66,11 @@ def event_post_save_handler(sender, instance, created, **kwargs):
     if not delta.changes:
         return
     for change in delta.changes:
+        if change.field == 'status':
+            if change.old =='active' and change.new == 'resolved':
+                callout_resolved_handler(instance)
+            if change.old =='resolved' and change.new == 'active':
+                callout_created_handler(instance, 'Callout reactivated')
         update += "\n{} changed from '{}' to '{}'".format(
             change.field, change.old, change.new)
     CalloutLog.objects.create(
@@ -88,13 +108,16 @@ def log_post_save_handler(sender, instance, created, **kwargs):
                           .filter(period__event=instance.event)
                           .exclude(member_id=instance.member_id)
                           .values_list('member_id', flat=True))
+        channel = 'log'
     else:  # announcement
         member_ids = list(Member.members
                           .exclude(id=instance.member_id)
                           .values_list('id', flat=True))
+        channel = 'announcement'
     push.send_push_message(
         title = title,
         body = body,
         data = { "url": "view-callout", "id": instance.event.id, "type": "log"},
-        member_ids = member_ids)
+        member_ids = member_ids,
+        channel=channel)
 
