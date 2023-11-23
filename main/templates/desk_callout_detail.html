@@ -1,0 +1,141 @@
+{% extends 'base_generic.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Callout: {{ event.title }}{% endblock title %}
+
+{% block subheader %}
+<strong>
+  <a href='{% url "desk_callout_list" %}'> Callouts </a>&gt; {{ event.title }}
+</strong>
+
+<ul class="navbar-nav ml-auto">
+  <li class="nav-item">
+    <a class="" href="{% url 'desk_callout_update' event.id %}">
+      <span>&nbsp;</span> {#FIXME: shouldn't be necessary #}
+      <i class="fa fa-pencil"></i> Edit
+    </a>
+  </li>
+</ul>
+{% endblock subheader %}
+
+{% block content %}
+<main role="main" class="container-fluid">
+  <div id="content">
+    {% if event.description %}
+    <p><strong>Description:</strong><br> {{ event.description|urlize|linebreaksbr }}</p>
+    {% endif %}
+
+    <p><strong>Location:</strong>
+      {% if event.location %}
+      {{ event.location|urlize }}
+      <a target="_blank"
+         href="https://google.com/maps/search/?api=1&query={{ event.location|urlencode }}">
+        <i class="fa fa-map-marker"></i>
+      </a>
+      {% endif %}
+      <p>
+      {% if event.lat != None %}
+      <strong>Lat, Long:</strong> {{ event.lat|floatformat:8 }}, {{ event.lon|floatformat:8 }}
+      <a target="_blank"
+         href="https://google.com/maps/search/?api=1&query={{ event.lat|floatformat:8 }},{{ event.lon|floatformat:8 }}">
+        <i class="fa fa-map-marker"></i>
+      </a>
+      {% endif %}
+      {% if event.location_address != None %}
+      <p>
+        <strong>Address:</strong>
+        {{ event.location_address }}{% if event.location_city != None %}, {{ event.location_city }}{% endif %}{% if event.location_state != None %}, {{ event.location_state }}{% endif %}
+        {{ event.location_zip|default_if_none:'' }}
+      </p>
+      {% endif %}
+    </p></p>
+
+    {% if event.subject or event.subject_contact %}
+    <p><strong>Subject:</strong> {{ event.subject}} {{ event.subject_contact|default_if_none:'' }}</p>
+    {% endif %}
+    {% if event.informant or event.informant_contact %}
+    <p><strong>Informant:</strong> {{ event.informant}} {{ event.informant_contact|default_if_none:'' }}</p>
+    {% endif %}
+
+
+    {% if event.radio_channel != None %}<p><strong>Tactical Channel:</strong>{{ event.radio_channel }}</p>{% endif %}
+    {% if event.handling_unit != None %}<p><strong>Tag / Handling Unit:</strong>{{ event.handling_unit }}</p>{% endif %}
+
+    <p>
+      <strong>Start:</strong>
+      {% if event.all_day %}
+        {{ event.start_at|date:'M j, Y' }}
+      {% else %}
+        {{ event.start_at|date:'M j, Y H:i' }}
+      {% endif %}
+      {% if event.finish_at != None %}
+      <strong>End:</strong>
+      {% if event.all_day %}
+        {{ event.finish_at|date:'M j, Y' }}
+      {% else %}
+        {{ event.finish_at|date:'M j, Y H:i' }}
+      {% endif %}
+      {% endif %}
+    </p>
+
+    <p><strong>Log:</strong>
+      <ul class="list-group">
+      {% for log in event.calloutlog_set.all %}
+      {% if log.type == "message" %}
+      <li class="list-group-item list-group-item-primary">{{log.member.full_name }}: {{ log.message }}</li>
+      {% elif log.type == "system" %}
+      <li class="list-group-item list-group-item-light">{{log.update|linebreaksbr}}</li>
+      {% elif log.type == "response" %}
+      <li class="list-group-item list-group-item-dark">{{ log.message }}</li>
+      {% endif %}
+      {% endfor %}
+      </ul>
+    </p>
+    <div class="col-sm-6 col-sm-offset-3">
+      <form>
+        <div class="form-group">
+          <label for="message">Send a message:</label>
+          <input type="text" class="form-control" id="message" name="message" />
+        </div>
+        <button type="submit" class="btn btn-success">
+          Submit
+        </button>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock content %}
+
+{% block js %}
+{{ block.super }}
+<script>
+'use strict'
+$(document).ready(function () {
+  $("form").submit(function (event) {
+    var data = {
+      type: "message",
+      message: $("#message").val(),
+    };
+
+    $.ajax({
+      method: "POST",
+      url: "/api/callouts/{{event.id}}/log/",
+      data: data,
+      dataType: "json",
+      encode: true,
+      success: function () {
+        location.reload(true);
+      },
+      error: function (msg) {
+        console.log('message send failed: '+msg);
+        alert(msg);
+        return false;
+      },
+    });
+
+    event.preventDefault();
+  });
+});
+
+</script>
+{% endblock js %}

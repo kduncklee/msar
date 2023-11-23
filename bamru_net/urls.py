@@ -117,6 +117,10 @@ urlpatterns = [
 
     path('action/become_do/', views.ActionBecomeDo.as_view(), name='action_become_do'),
 
+    path('desk/callout/', views.DeskCalloutListView.as_view(), name='desk_callout_list'),
+    path('desk/callout/add', views.DeskCalloutCreateView.as_view(), name='desk_callout_add'),
+    path('desk/callout/<int:pk>/', views.DeskCalloutDetailView.as_view(), name='desk_callout_detail'),
+    path('desk/callout/<int:pk>/edit/', views.DeskCalloutUpdateView.as_view(), name='desk_callout_update'),
     
     # Message Webhook and Responses
     path('unauth_rsvp/<slug:token>/<slug:rsvp>/', views.unauth_rsvp, name='unauth_rsvp'),

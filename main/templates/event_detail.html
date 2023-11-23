@@ -282,7 +282,7 @@
 {{ block.super }}
 <script>
   'use strict'
-  const STATUSES = { {% for s in statuses %}{{ s}}:0,{% endfor %} };
+  const STATUSES = { {% for s in statuses %}"{{s}}":0,{% endfor %} };
   window.summary = [];
 
 $(document).ready( function() {

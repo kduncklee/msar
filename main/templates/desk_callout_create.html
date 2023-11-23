@@ -1,0 +1,16 @@
+{% extends 'base_generic.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Callout{% endblock title %}
+
+{% block content %}
+<main role="main" class="container-fluid">
+  <div id="content">
+    <form method="post">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      <input type="submit" value="Submit" />
+    </form>
+  </div>
+</main>
+{% endblock content %}

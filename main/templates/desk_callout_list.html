@@ -1,0 +1,39 @@
+{% extends 'base_generic.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Callout List{% endblock title %}
+
+{% block subheader %}
+<strong>
+  <a href='{% url "desk_callout_list" %}'> Callouts </a>
+</strong>
+
+<ul class="navbar-nav ml-auto">
+  <li class="nav-item">
+    <a class="" href="{% url 'desk_callout_add' %}">
+      <span>&nbsp;</span> {#FIXME: shouldn't be necessary #}
+      <i class="fa  fa-calendar-plus-o"></i> Create
+    </a>
+  </li>
+</ul>
+{% endblock subheader %}
+
+{% block content %}
+<main role="main" class="container-fluid">
+  <div id="content">
+    <ul class="list-group">
+      {% for call in callout_list %}
+      <a class="list-group-item list-group-item-action flex-column align-items-start"
+         href="{% url 'desk_callout_detail' call.id %}">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ call.title }}</h5>
+          <small>{{ call.start_at }}</small>
+        </div>
+        <p class="mb-1">{{ call.subject|default_if_none:'' }}</p>
+        <small>{{ call.description|linebreaksbr }}</small>
+      </a>
+      {% endfor %}
+    </ul>
+  </div>
+</main>
+{% endblock content %}
