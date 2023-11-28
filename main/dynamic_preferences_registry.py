@@ -18,6 +18,12 @@ class CertNotice(types.BooleanPreference):
     default = False
 
 @global_preferences_registry.register
+class TitleHeader(types.StringPreference):
+    section = general
+    name = 'title_heading'
+    default = 'BAMRU.net'
+
+@global_preferences_registry.register
 class WikiUrl(types.StringPreference):
     section = general
     name = 'wiki_url'

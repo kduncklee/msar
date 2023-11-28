@@ -6,5 +6,6 @@ def dsn(request):
     return {
         'JAVASCRIPT_DSN': settings.JAVASCRIPT_DSN,
         'RELEASE': settings.RELEASE,
+        'TITLE_HEADING': global_preferences['general__title_heading'],
         'WIKI_URL': global_preferences['general__wiki_url']
     }
