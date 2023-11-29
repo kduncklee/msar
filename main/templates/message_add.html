@@ -70,7 +70,7 @@ columns: [
     { data: 'full_name', title: 'Name', responsivePriority: 1, 
       render: function(data, type, row, meta) {
           if (type == 'display') {
-              data = '<a href="/member/' + row.id + '?returnx=ml">' + data + '</a>';
+              data = '<a href="{% url 'member_list' %}' + row.id + '?returnx=ml">' + data + '</a>';
               if (row.is_unavailable == 'True') data = '<i>' + data + '</i>';
           }
           return data;
@@ -199,12 +199,12 @@ function SendPage ( e, dt, node, config ) {
     $.ajax({
         method: 'POST',
         contentType: 'application/json',
-        url: '/api/messages/',
+        url: '{% url 'api:message-list' %}',
         data: data,
         success: function (response) {
             console.log(response);
             var message_id = response.id;
-            location.href='/message/' + message_id + '/';
+            location.href='{% url 'message_list' %}' + message_id + '/';
         },
         error: function (xhr) {
             console.log('Message add failed');
@@ -234,7 +234,7 @@ function UpdateSubheaderBasedOnSettings (table) {
     });
 
     if ('{{ type }}' == 'std_page') {
-        var sh = '<a href="/event/' + eventId + '/#OP' + periodPosition + '">' +
+        var sh = '<a href="{% url 'event_list' %}' + eventId + '/#OP' + periodPosition + '">' +
             '{{ period }}</a>:' + pageFormat;
 
         $('#subhdr-sm')[0].innerHTML = sh;
@@ -262,7 +262,7 @@ function UpdateSubheaderBasedOnSettings (table) {
 }
 
 function CancelPage ( e, dt, node, config ) {
-    location.href = '/event/' + eventId + '/#OP' + periodPosition
+    location.href = '{% url 'event_list' %}' + eventId + '/#OP' + periodPosition
 }
 
 

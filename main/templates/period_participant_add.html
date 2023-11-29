@@ -33,7 +33,7 @@ columns: [
     { data: 'full_name', title: 'Name', responsivePriority: 1,
       render: function(data, type, row, meta) {
           if (type == 'display') {  //FX: add lightweight icon
-              data = '<a href="/member/' + row.id + '?returnx=pp">' + data + '</a>';
+              data = '<a href="{% url 'member_list' %}' + row.id + '?returnx=pp">' + data + '</a>';
               if (row.is_unavailable=='True') {
                   var event_start = new Date('{{ event.start_at|date:'M j, Y' }}');
                   var event_end = new Date('{{ event.finish_at|date:'M j, Y' }}');
@@ -112,11 +112,11 @@ function AddParticipant ( e, dt, node, config ) {
         $.ajax({
             method: 'POST',
             contentType: 'application/json',
-            url: '/api/participants/',
+            url: '{% url 'api:participant-list' %}',
             data: data,
             success: function (response) {
                 console.log('Period add ' + response.length + ' members');
-                location.href='/event/{{ event_id }}/#OP{{ period_position }}';
+                location.href='{% url 'event_detail' event_id %}#OP{{ period_position }}';
             },
             error: function (xhr) {
                 console.log('Period add failed');
@@ -145,7 +145,7 @@ function UpdateSubheaderBasedOnSettings(table) {
         }
     });
 
-    var shdr = '<a href="/event/{{ event_id }}/#OP{{ period_position }}">' +
+    var shdr = '<a href="{% url 'event_detail' event_id %}#OP{{ period_position }}">' +
             '{{ title|escapejs }}' + '</a>';
     $('#subhdr')[0].innerHTML = shdr + ' > Add Participants (' +
         showStatus.join(', ') + ')';

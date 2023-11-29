@@ -118,7 +118,7 @@ $(document).ready(function() {
     // Create Current events table
     var tableUpcoming = $('#Upcoming').DataTable( {
         dom: 'Bfrtip',
-        ajax: { url: ComputeUpcoming(), dataSrc: '', },
+        ajax: { url: ComputeUpcoming(), dataSrc: 'results', },
         paging:   false,
         info:     false,
 
@@ -177,7 +177,7 @@ $(document).ready(function() {
     // Initialize datatable with responsive behavior and datatable buttons
     var tableRecent = $('#Recent').DataTable( {
         dom: 'Bfrtip',
-        ajax: { url: ComputeRecent(), dataSrc: '', },
+        ajax: { url: ComputeRecent(), dataSrc: 'results', },
         paging:   false,
         info:     false,
 
@@ -359,7 +359,7 @@ function AddRowsByDate (table, start, end) {
     // Add rows based on date range
     // (assumes that start end end have been validated) 
     //
-    const apiUrlEvent = '/api/events/';
+    const apiUrlEvent = '{% url 'api:event-list' %}';
     var url;
 
     if (start && end)
@@ -375,9 +375,9 @@ function AddRowsByDate (table, start, end) {
 
     $.getJSON(url, null, function( json ) {
 
-        for (var i = 0; i < json.length; i++)
+        for (var i = 0; i < json.results.length; i++)
         {
-            var data = json[i];
+            var data = json.results[i];
             table.row.add(data).invalidate()
         }
 
@@ -419,7 +419,7 @@ function ComputeUpcoming () {
     $('#UpcomingSubhdr').html('<i class="fa fa-calendar"></i> Current events ('
                               + fstart + ' to ' + fend + ')');
 
-    return '/api/events/?finish_at_after=' + start + '&start_at_before=' + end;
+    return '{% url 'api:event-list' %}?finish_at_after=' + start + '&start_at_before=' + end;
 }
 
 function ComputeRecent () {
@@ -433,7 +433,7 @@ function ComputeRecent () {
     $('#RecentSubhdr').html('<i class="fa fa-calendar"></i> Recent events ('
                             + fstart + ' to ' + fend + ')');
 
-    return '/api/events/?finish_at_after=' + start + '&start_at_before=' + end;
+    return '{% url 'api:event-list' %}?finish_at_after=' + start + '&start_at_before=' + end;
 }
 
 function SelectDate () {
@@ -444,7 +444,7 @@ function SelectDate () {
 function rTitle (data, type, row, meta) {
     if (type == 'display') {
         var title = row.title; //Truncate(row.title, titleLength);
-        return '<a href="/event/' + row.id + '/">' + title + '</a>';
+        return '<a href="{% url 'event_list' %}' + row.id + '/">' + title + '</a>';
     } else
         return data;
 }

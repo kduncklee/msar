@@ -81,7 +81,7 @@ columnDefs: [  // Uses columns defs because columns titles aren't fixed
                 // Add color to the busy periods
                 var row = $('#dTbl').DataTable().row(meta.row).node();
                 if (data && data[0] != '<')
-                    $('td:eq(' + (meta.col - 1) + ')', row).css('background-color', 'orange');
+                    $('td:eq(' + (meta.col - 2) + ')', row).css('background-color', 'orange');
             }
             return data;
         },
@@ -160,7 +160,7 @@ function SetBusy(busy, start, end, comment) {
     return i;
 }
 
-const apiUrlMemberAvail = '/api/member_availability/?member__status__short=';
+const apiUrlMemberAvail = '{% url 'api:member-availability-list' %}?member__status__short=';
 
 function AddAvailRows(table, values) {
     //
@@ -174,11 +174,11 @@ function AddAvailRows(table, values) {
         var dd = DateArray(new Date, 5);
         
         // Foreach member mark busy period within date range
-        for (var m = 0; m < json.length; m++)
+        for (var m = 0; m < json.results.length; m++)
         {
-            var row = json[m];
+            var row = json.results[m];
             var data = [
-                '<a href="/member/' + row.id+'?returnx=al">' + row.full_name + '</a>',
+                '<a href="{% url 'member_list' %}' + row.id+'?returnx=al">' + row.full_name + '</a>',
                 row.status, row.status_order, row.roles, row.role_order
             ];
             var busy = Array(numDays + 1).fill('');

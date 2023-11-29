@@ -205,7 +205,7 @@ GetStartingPeriod();
 function InitializeData() {
     // Add rows based on date range
     const apiUrlDoAvailEvent =
-          '/api/do/?member={{ member.id }}' +
+          '{% url 'api:do-list' %}?member={{ member.id }}' +
           '&year=' + currentPeriod.year + '&quarter=' + currentPeriod.quarter;
     var url = apiUrlDoAvailEvent;
     
@@ -234,7 +234,7 @@ function UpdateRow (dt, row,
     $.ajax({
         method: 'PATCH',
         contentType: 'application/json',
-        url: '/api/do/' + id + '/',
+        url: '{% url 'api:do-list' %}' + id + '/',
         data: data,
         success: success,
         error: function (xhr) {

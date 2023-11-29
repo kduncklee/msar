@@ -110,7 +110,7 @@ function AddBusy (dt, row, success, error) {
     $.ajax({
         method: 'POST',
         contentType: 'application/json',
-        url: '/api/availability/',
+        url: '{% url 'api:member-unavailable-list' %}',
         data: data,
         success: function (r, s, m) {
             r.mark = '';
@@ -144,7 +144,7 @@ function UpdateRow (dt, row, success, error) {
     $.ajax({
         method: 'PATCH',
         contentType: 'application/json',
-        url: '/api/availability/' + pid + '/',
+        url: '{% url 'api:member-unavailable-list' %}' + pid + '/',
         data: data,
         success: function (r, s, m) {
             var name = r.member.full_name;

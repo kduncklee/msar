@@ -2,7 +2,7 @@
 
 <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
 
-  <a class="navbar-brand" href="/">
+  <a class="navbar-brand" href="{% url 'home' %}">
     <img id="logo" src="{% static "bamru.png" %}" alt="Logo">{{ TITLE_HEADING }}</a>
 
   {# Hamburger icon for collapsed menu #}
@@ -110,7 +110,7 @@
             Add a new Member (Guest)
           </a>
 {% endif %}
-          <a class="dropdown-item" href="/admin" target="_blank">
+          <a class="dropdown-item" href="{% url 'admin:index' %}" target="_blank">
             <i class="fa fa-edit"></i>
             Perform admin tasks
           </a>

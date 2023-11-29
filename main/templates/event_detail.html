@@ -331,7 +331,7 @@ $(document).ready( function() {
                       if (row.ahc == 'true') data += '(AHC)';
                       if (row.ol == 'true') data += '(OL)';
                       if (row.logistics == 'true') data += '(Logistics)';
-                      data = '<a href="/member/' + row.member + '">' + data + '</a>';
+                      data = '<a href="{% url 'member_list' %}' + row.member + '">' + data + '</a>';
                       if (row.is_unavailable == 'True') {
                           var event_start = new Date('{{ event.start_at|date:'M j, Y' }}');
                           var event_end = new Date('{{ event.finish_at|date:'M j, Y' }}');
@@ -983,7 +983,7 @@ function UpdatePeriodRow(dt, row, success, error) {
     $.ajax({
         method: 'PATCH',
         contentType: 'application/json',
-        url: '/api/participants/' + pid + '/',
+        url: '{% url 'api:participant-list' %}' + pid + '/',
         data: data,
         success: function (data, status, more) {
             return true;
@@ -1024,7 +1024,7 @@ function AddMeToOP (period) {
     $.ajax({
         method: 'POST',
         contentType: 'application/json',
-        url: '/api/participants/',
+        url: '{% url 'api:participant-list' %}',
         data: data,
             success: function (response) {
                 console.log('Period add: signed-in user ');
@@ -1053,9 +1053,9 @@ function DeleteEvent ( event, title ) {
         $.ajax({
             method: 'DELETE',
             contentType: 'application/json',
-            url: '/api/events/' + event + '/',
+            url: '{% url 'api:event-list' %}' + event + '/',
         })
-        location.href = '/event/';
+        location.href = '{% url 'event_list' %}';
     }
 }
 
@@ -1073,9 +1073,9 @@ function DeleteOP (tblName, period, position ) {
         $.ajax({
             method: 'DELETE',
             contentType: 'application/json',
-            url: '/api/periods/' + period + '/',
+            url: '{% url 'api:period-list' %}' + period + '/',
             success: function () {
-                location.href='/event/' + {{ event.id }};
+                location.href='{% url 'event_list' %}' + {{ event.id }};
             },
             error: function (msg) {
                 console.log('Operational period delete failed: '+msg);
@@ -1106,7 +1106,7 @@ function DeleteParticipants ( e, dt, node, config ) {
             $.ajax({
                 method: 'DELETE',
                 contentType: 'application/json',
-                url: '/api/participants/' + members[i] + '/',
+                url: '{% url 'api:participant-list' %}' + members[i] + '/',
                 success: function () {
                     location.reload(true);
                 },

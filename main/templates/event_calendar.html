@@ -23,6 +23,7 @@
 
     <meta charset='utf-8' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
+    <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
     <script>
 
 function RefetchPatrols(calendar) {
@@ -106,6 +107,8 @@ function HandleEventClick(info) {
 var eventSources = [
   {
     id: 'events',
+    color: 'lightgrey',
+    textColor: 'black',
     url: '{% url 'event-list' %}',
     startParam: 'finish_at_iso_after',
     endParam: 'start_at_iso_before',
@@ -117,7 +120,10 @@ var eventSources = [
             title: x.title,
             start: x.start_at,
             end: x.end_at,
-            allDay: x.all_day
+            allDay: x.all_day,
+            extendedProps: {
+              description: x.description
+            }
           };
         }
       );
@@ -131,9 +137,21 @@ var eventSources = [
     success: function(response) {
       return response.results.map(
         function(x) {
+          var textColor = 'white';
+          var backgroundColor = '#3b59a0';
+          if (x.member.status == 'CVS') {
+            textColor = 'black';
+            backgroundColor = '#aad4ff';
+          } else if ((x.member.status == 'CV') || (x.member.status[0] == 'P')) {
+            textColor = 'black';
+            backgroundColor = '#ffffff';
+          }
           return {
             id: x.id,
             title: x.member.username,
+            backgroundColor: backgroundColor,
+            borderColor: 'black',
+            textColor: textColor,
             start: x.date,
             end: x.date,
             allDay: true,
@@ -156,9 +174,29 @@ document.addEventListener('DOMContentLoaded', function() {
     initialView: 'dayGridMonth',
     eventSources: eventSources,
     dateClick: HandleDateClick,
-    eventClick: HandleEventClick
+    eventClick: HandleEventClick,
+
+    eventDidMount: function(info) {
+      if (info.event.extendedProps.patrol) {
+        $(info.el).tooltip({
+          title: info.event.extendedProps.member.full_name,
+          placement: 'top',
+          trigger: 'hover',
+          container: 'body'
+        });
+      } else {
+        $(info.el).tooltip({
+          title: info.event.extendedProps.description,
+          placement: 'top',
+          trigger: 'hover',
+          container: 'body'
+        });
+      }
+    }
   });
   calendar.render();
+
+  $('[data-toggle="tooltip"]').tooltip();
 
   //calendar.on('dateClick', HandleDateClick);
   //calendar.on('eventClick', HandleEventClick);

@@ -36,7 +36,7 @@ columns: [
     { data: 'full_name', title: 'Name', responsivePriority: 1,
       render: function(data, type, row, meta) {
           if (type == 'display')
-              return '<a href="/member/' + row['id'] + '?returnx=cl">' + data + '</a>';
+              return '<a href="{% url 'member_list' %}' + row['id'] + '?returnx=cl">' + data + '</a>';
           else if (type == 'sort')
               return data;
           else
@@ -90,7 +90,26 @@ function RenderColor (data, type, row, meta) {
           return data;
       }
 
-const apiUrlMemberCert = '/api/member_certs/?status=';
+function UpdateSubheaderBasedOnSettings(table) {
+    // Extract currently selected status based on filter
+    var showStatus = [];
+    $('#filter-status option').each(function() {
+        if (!this.selected) {
+            showStatus.push(this.value);
+        }
+    });
+
+    var shsm = '<a href=' + {% url 'member_list' %} + '>Members</a> > Certifications';
+    var sh = '<a href=' + {% url 'member_list' %} +
+        '>Members</a> (' +  showStatus.join(', ') + ') > Certifications';
+
+    $('#subhdr-sm')[0].innerHTML = shsm;
+    $('#subhdr')[0].innerHTML = sh;
+}
+
+{% endblock functions %}
+{% block row_functions %}
+const apiUrlMemberCert = '{% url 'api:member-cert-list' %}?status__short=';
 
 function AddRows(table, values) {
     //
@@ -98,9 +117,9 @@ function AddRows(table, values) {
     //
     var url = apiUrlMemberCert + values[0];
     $.getJSON(url, null, function( json ) {
-        for (var i = 0; i < json.length; i++)
+        for (var i = 0; i < json.results.length; i++)
         {
-            var data = json[i];
+            var data = json.results[i];
             //FX: this is a hack, the API should return complete certs
             //Find a better way to not embedded cert names
             data.medical = '';
@@ -143,21 +162,4 @@ function RemoveRows(table, values) {
         table.draw().columns.adjust().responsive.recalc();//FX
 }
 
-function UpdateSubheaderBasedOnSettings(table) {
-    // Extract currently selected status based on filter
-    var showStatus = [];
-    $('#filter-status option').each(function() {
-        if (!this.selected) {
-            showStatus.push(this.value);
-        }
-    });
-
-    var shsm = '<a href=' + {% url 'member_list' %} + '>Members</a> > Certifications';
-    var sh = '<a href=' + {% url 'member_list' %} +
-        '>Members</a> (' +  showStatus.join(', ') + ') > Certifications';
-
-    $('#subhdr-sm')[0].innerHTML = shsm;
-    $('#subhdr')[0].innerHTML = sh;
-}
-
-{% endblock functions %}
+{% endblock row_functions %}

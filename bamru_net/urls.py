@@ -38,7 +38,7 @@ router.register(r'members', views.MemberViewSet, basename='member')
 router.register(r'member_certs', views.MemberCertViewSet, basename='member-cert')
 router.register(r'certs', views.CertViewSet)
 router.register(r'availability', views.ApiUnavailableViewSet, basename='member-unavailable')
-router.register(r'do', views.DoViewSet)
+router.register(r'do', views.DoViewSet, basename='do')
 router.register(r'member_availability', views.MemberUnavailableViewSet, basename='member-availability')
 router.register(r'photos', views.MemberPhotoViewSet)
 router.register(r'messages', views.MessageViewSet)
@@ -128,7 +128,7 @@ urlpatterns = [
     path('webhooks/sms_callback/', views.sms_callback, name='sms_callback'),
     path('webhooks/sms/', views.sms, name='sms'),
 
-    url(r'^api/', include(router.urls)),
+    url(r'^api/', include((router.urls, 'api'))),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api-token-auth/', rest_framework.authtoken.views.obtain_auth_token),
 

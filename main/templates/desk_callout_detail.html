@@ -119,7 +119,7 @@ $(document).ready(function () {
 
     $.ajax({
       method: "POST",
-      url: "/api/callouts/{{event.id}}/log/",
+      url: "{% url 'api:callout-list' %}{{event.id}}/log/",
       data: data,
       dataType: "json",
       encode: true,

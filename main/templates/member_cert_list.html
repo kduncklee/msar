@@ -150,7 +150,7 @@ function AddCert (dt, row, success, error) {
     $.ajax({
         method: 'POST',
         contentType: 'application/json',
-        url: '/api/availability/',
+        url: '{% url 'api:cert-list' %}',
         data: data,
         success: function (r, s, m) {
             return success(r, s, m);
@@ -178,7 +178,7 @@ function UpdateRow (dt, row, success, error, url, emsg) {
     $.ajax({
         method: 'PATCH',
         contentType: 'application/json',
-        url: '/api/certs/' + cid + '/',
+        url: '{% url 'api:cert-list' %}' + cid + '/',
         data: data,
         success: function (r, s, m) {
             if (!r.expires_on) r.expires_on = '';

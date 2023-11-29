@@ -87,7 +87,7 @@ $(document).on('click', '.delete-photo', function(e) {
 
     if (confirm("Really delete photo?")) {
         $.ajax({
-            url: '/api/photos/'+id+'/',
+          url: '{% url 'api:memberphoto-list' %}'+id+'/',
             method: "DELETE",
         }).done(function(){
             location.reload();
@@ -110,7 +110,7 @@ $(document).on('click', '#submit-photo', function(e) {
     data.append('position', $(".photo").length + 1);
     data.append('file', files[0]);
     $.ajax({
-        url: '/api/photos/',
+        url: '{% url 'api:memberphoto-list' %}',
         data: data,
         cache: false,
         contentType: false,
@@ -133,7 +133,7 @@ $(function(){
         $('.photo-item').each(function(i, elem) {
             var id = $(elem).data('photo-id');
             $.ajax({
-                url: '/api/photos/'+id+'/',
+                url: '{% url 'api:memberphoto-list' %}'+id+'/',
                 method: 'PATCH',
                 data: {id: id, position: i},
             }).done(function(){

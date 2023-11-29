@@ -120,7 +120,7 @@
 {{ block.super }}
 <script>
 $(document).ready( function() {
-    var certUrl = '/api/member_certs/{{ member.id }}/';
+    var certUrl = '{% url 'api:member-cert-list' %}{{ member.id }}/';
     var table = $('#dTbl').DataTable( {
         dom: 'rtip',
         ajax: { url: certUrl,

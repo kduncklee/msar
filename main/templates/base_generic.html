@@ -164,7 +164,7 @@
                 }
                 return '';
             }
-            return '<a href="/member/{{ member.id }}/certs/' + row.id + '/download/' + file + '" target="_blank">' + file + '</a>'
+            return '<a href="{% url 'home' %}certs/' + row.id + '/download/' + file + '" target="_blank">' + file + '</a>'
         }
         return data
     }

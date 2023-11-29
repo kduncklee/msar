@@ -91,7 +91,7 @@ $(document).ready(function() {
         // TODO indicate in-progress requests, surface errors
         $.ajax({
             'method': 'patch',
-            'url': '/api/do/'+id+'/',
+            'url': '{% url 'api:do-list' %}'+id+'/',
             'data': {'assigned': assigned},
         });
     }
