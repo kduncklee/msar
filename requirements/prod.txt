@@ -21,7 +21,6 @@ Django==3.2.16
 django-anymail==8.6
 django-appconf==1.0.3
 django-bootstrap4==22.1
-django-datatables-view==1.16.0
 django-dynamic-preferences==1.10.1
 django-extensions==2.1.6
 django-filter==22.1
