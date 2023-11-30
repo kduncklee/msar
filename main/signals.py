@@ -40,7 +40,8 @@ def callout_created_handler(instance, title="New Callout"):
         body = instance.title,
         data = { "url": "view-callout", "id": instance.id, "type": "created"},
         member_ids = member_ids,
-        channel='callout')
+        channel='callout',
+        critical=True)
 
 
 def callout_resolved_handler(instance):
