@@ -38,7 +38,7 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
             c for c in form.fields['operation_type'].choices
             if c[0] != 'information']
 
-        form.fields['title'].label = "Short description"
+        form.fields['title'].label = "Title (short description)"
         form.fields['description'].label = "Description with additional details"
         form.fields['description'].widget.attrs = { 'rows':4 }
         form.fields['radio_channel'].label = "Tactical Channel"
@@ -50,13 +50,14 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
 
     def form_valid(self, form):
         object = form.save(commit=False)
-        if object.type is None:
+        if not object.type:
             object.type = 'operation'
         if object.start_at is None:
             object.start_at = timezone.now()
         if object.status is None:
             object.status = 'active'
-        self.object = form.save()
+        object.save()
+        self.object = object
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
