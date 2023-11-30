@@ -1,8 +1,8 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.forms.models import modelformset_factory
 from django.views import generic
 from django_q.tasks import async_task
+from rules.contrib.views import PermissionRequiredMixin
 
 from main.lib import groups
 from main.models import DoAvailable, DoLog, Member
@@ -13,7 +13,7 @@ from collections import defaultdict
 import logging
 logger = logging.getLogger(__name__)
 
-class DoAbstractView(LoginRequiredMixin):
+class DoAbstractView(PermissionRequiredMixin):
     def get_params(self):
         year = self.request.GET.get('year', '')
         if year.isnumeric():
@@ -50,6 +50,7 @@ class DoAbstractView(LoginRequiredMixin):
 class DoListView(DoAbstractView, generic.ListView):
     template_name = 'do_list.html'
     context_object_name = 'do_list'
+    permission_required = 'main.view_doavailable'
 
     def get_queryset(self):
         super().get_params()
@@ -61,6 +62,7 @@ class DoListView(DoAbstractView, generic.ListView):
 
 class DoPlanView(DoAbstractView, generic.base.TemplateView):
     template_name = 'do_plan.html'
+    permission_required = 'main.change_doavailable'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -90,6 +92,7 @@ class DoPlanView(DoAbstractView, generic.base.TemplateView):
 
 class DoEditView(DoAbstractView, generic.base.TemplateView):
     template_name = 'member_do_availability_list.html'
+    permission_required = 'main.view_doavailable'
 
     def post(self, *args, **kwargs):
         return self.get(*args, **kwargs)
@@ -137,8 +140,9 @@ class DoEditView(DoAbstractView, generic.base.TemplateView):
         return context
 
 
-class DoAhcStatusView(LoginRequiredMixin, generic.base.TemplateView):
+class DoAhcStatusView(PermissionRequiredMixin, generic.base.TemplateView):
     template_name = 'do_ahc_status.html'
+    permission_required = 'main.view_member'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

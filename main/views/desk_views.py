@@ -5,6 +5,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views import generic
+from rules.contrib.views import PermissionRequiredMixin
+
 from main.models import Event
 
 import logging
@@ -23,10 +25,11 @@ class CalloutForm(ModelForm):
             'notifications_made',
         ]
 
-class DeskCalloutBaseView(LoginRequiredMixin, generic.edit.ModelFormMixin):
+class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
     model = Event
     form_class = CalloutForm
     template_name = 'desk_callout_create.html'
+    permission_required = 'main.desk'
 
     def get_form(self):
         form = super().get_form()
@@ -65,9 +68,10 @@ class DeskCalloutCreateView(DeskCalloutBaseView, generic.edit.CreateView):
 class DeskCalloutUpdateView(DeskCalloutBaseView, generic.edit.UpdateView):
     pass
 
-class DeskCalloutDetailView(LoginRequiredMixin, generic.DetailView):
+class DeskCalloutDetailView(PermissionRequiredMixin, generic.DetailView):
     model = Event
     template_name = 'desk_callout_detail.html'
+    permission_required = 'main.desk'
 
     def get_queryset(self):
         return super().get_queryset().prefetch_related(
@@ -75,10 +79,11 @@ class DeskCalloutDetailView(LoginRequiredMixin, generic.DetailView):
             'calloutlog_set__member',
         )
 
-class DeskCalloutListView(LoginRequiredMixin, generic.ListView):
+class DeskCalloutListView(PermissionRequiredMixin, generic.ListView):
     model = Event
     template_name = 'desk_callout_list.html'
     context_object_name = 'callout_list'
+    permission_required = 'main.desk'
 
     def get_queryset(self):
         return (Event.objects

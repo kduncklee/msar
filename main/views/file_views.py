@@ -1,21 +1,22 @@
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_list_or_404, get_object_or_404, redirect
 from django.urls import reverse
 from django.views import generic
 from django.views.generic.edit import CreateView
+from rules.contrib.views import PermissionRequiredMixin
 
 from main.models import DataFile, MemberPhoto
 
 import logging
 logger = logging.getLogger(__name__)
 
-class BaseFileFormView(LoginRequiredMixin, CreateView):
+class BaseFileFormView(PermissionRequiredMixin, CreateView):
     template_name = 'base_form.html'
     model = None  # Must be filled in by sub-class
     fields = ('file', )
+    permission_required = 'main.add_datafile'
 
     def get_form(self, form_class=None):
         form = super(BaseFileFormView, self).get_form(form_class)
@@ -37,9 +38,10 @@ class DataFileFormView(BaseFileFormView):
         return reverse('file_list')
 
 
-class FileListView(LoginRequiredMixin, generic.ListView):
+class FileListView(PermissionRequiredMixin, generic.ListView):
     template_name = 'file_list.html'
     context_object_name = 'file_list'
+    permission_required = 'main.view_datafile'
 
     def get_queryset(self):
         return DataFile.objects.order_by('name').select_related('member')
@@ -63,18 +65,18 @@ def download_data_file_helper(data_file, increment=True):
         data_file.save()
     return download_file_helper(data_file.file.url, data_file.name, False)
 
-@login_required
+@permission_required('main.view_datafile')
 def download_data_file_by_id_view(request, id):
     f = get_object_or_404(DataFile, id=id)
     return download_data_file_helper(f)
 
-@login_required
+@permission_required('main.view_datafile')
 def download_data_file_by_name_view(request, name):
     files = get_list_or_404(DataFile, name=name)
     f = files[0]  # TODO: Do we prefer the oldest or most recent?
     return download_data_file_helper(f)
 
-@login_required
+@permission_required('main.view_datafile')
 def member_photo_by_id_view(request, id, format):
     photos = get_list_or_404(MemberPhoto, id=id)
     if format == "original":

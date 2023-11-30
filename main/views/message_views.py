@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 from anymail.message import AnymailMessage
 from anymail.signals import tracking
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.dispatch import receiver
 from django.forms.widgets import HiddenInput, Select, SelectDateWidget, Widget
 from django.http import Http404, HttpResponse, HttpResponseRedirect
@@ -19,6 +17,7 @@ from django_twilio.decorators import twilio_view
 from django_twilio.request import decompose
 from dynamic_preferences.registries import global_preferences_registry
 from twilio.twiml.messaging_response import MessagingResponse
+from rules.contrib.views import PermissionRequiredMixin
 
 from main.models import Member, Participant, Period
 
@@ -29,11 +28,12 @@ from main.views.member_views import MemberStatusTypeMixin
 logger = logging.getLogger(__name__)
 
 
-class MessageCreateBaseView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):
+class MessageCreateBaseView(PermissionRequiredMixin, MemberStatusTypeMixin, generic.ListView):
     model = Message
     template_name = 'message_add.html'
     context_object_name = 'member_list'
     page_format = None  # to override in urls
+    permission_required = 'main.add_message'
 
     def get_queryset(self):
         """Return context for standard paging."""
@@ -174,9 +174,10 @@ class MessageCreateView(MessageCreateBaseView):
         return members
 
 
-class MessageDetailView(LoginRequiredMixin, generic.DetailView):
+class MessageDetailView(PermissionRequiredMixin, generic.DetailView):
     model = Message
     template_name = 'message_detail.html'
+    permission_required = 'main.view_message'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -217,10 +218,11 @@ class MessageDetailView(LoginRequiredMixin, generic.DetailView):
         return context
 
 
-class GenericMessageListView(generic.ListView):
+class GenericMessageListView(PermissionRequiredMixin, generic.ListView):
     model = Message
     template_name = 'message_list.html'
     context_object_name = 'message_list'
+    permission_required = 'main.view_message'
 
     def get_queryset(self):
         return super().get_queryset().select_related(
@@ -229,7 +231,7 @@ class GenericMessageListView(generic.ListView):
         )
 
 
-class MessageListView(LoginRequiredMixin, GenericMessageListView):
+class MessageListView(GenericMessageListView):
     paginate_by = 15
     ordering = ['-created_at']
 
@@ -239,9 +241,10 @@ class MessageListView(LoginRequiredMixin, GenericMessageListView):
         context['sortOrder'] = '2, "dsc"'
         return context
 
-class InboundSmsListView(LoginRequiredMixin, generic.ListView):
+class InboundSmsListView(PermissionRequiredMixin, generic.ListView):
     template_name = 'inbound_list.html'
     context_object_name = 'inbound_list'
+    permission_required = 'main.view_message'
 
     def get_queryset(self):
         qs = InboundSms.objects.all()
@@ -253,7 +256,7 @@ class InboundSmsListView(LoginRequiredMixin, generic.ListView):
         return qs.order_by('-created_at')
 
 
-class MessageInboxView(LoginRequiredMixin, GenericMessageListView):
+class MessageInboxView(GenericMessageListView):
     def get_queryset(self):
         """Return event list within the last year """
         qs = super().get_queryset().filter(created_at__gte=timezone.now() - timedelta(days=365))
@@ -263,7 +266,7 @@ class MessageInboxView(LoginRequiredMixin, GenericMessageListView):
         return qs.order_by('-created_at')
 
 
-class MessageEventView(LoginRequiredMixin, GenericMessageListView):
+class MessageEventView(GenericMessageListView):
     def get_queryset(self):
         qs = super().get_queryset()
         event_id = self.kwargs.get('event_id', None)
@@ -444,10 +447,11 @@ def handle_outbound_email_tracking(sender, event, esp_name, **kwargs):
     email.save()
 
 
-class ActionBecomeDo(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):
+class ActionBecomeDo(PermissionRequiredMixin, MemberStatusTypeMixin, generic.ListView):
     model = Message
     template_name = 'message_add.html'
     context_object_name = 'member_list'
+    permission_required = 'main.add_message'
 
     def get_queryset(self):
         """Return the member list."""

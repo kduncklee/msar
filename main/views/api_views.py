@@ -4,7 +4,7 @@ from main.serializers import *
 
 from django import forms
 from django.db.models import Prefetch
-from rest_framework import exceptions, generics, mixins, parsers, permissions, response, views, viewsets
+from rest_framework import exceptions, generics, mixins, parsers, permissions, response, serializers, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -302,7 +302,7 @@ class CalloutViewSet(CreateListModelMixin, BaseViewSet):
     def respond(self, request, pk=None):
         period = Period.objects.filter(event=pk).order_by('position').first()
         if period is None:
-            return None
+            raise serializers.ValidationError('No matching Period found.')
         obj, created = CalloutResponse.objects.update_or_create(
             period=period,
             member=request.user,

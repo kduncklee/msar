@@ -4,6 +4,7 @@ from django.http import HttpResponse, Http404
 from django.template import loader
 from django.utils import timezone
 from django.views import generic, View
+from rules.contrib.views import PermissionRequiredMixin
 
 from main.models import Cert, Member, MemberStatusType, Event, Participant, Period
 
@@ -22,8 +23,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ReportListView(generic.base.TemplateView):
+class ReportListView(PermissionRequiredMixin, generic.base.TemplateView):
     template_name = 'reports/index.html'
+    permission_required = 'main.view_report'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -32,7 +34,8 @@ class ReportListView(generic.base.TemplateView):
         return context
 
 
-class BaseReportView(View):
+class BaseReportView(PermissionRequiredMixin, View):
+    permission_required = 'main.view_report'
     def render(self, report_filename, context):
         report_name, report_filetype = report_filename.rsplit('.', 1)
 
@@ -56,7 +59,7 @@ def get_datetime_from_text(text, default):
     except (TypeError, ValueError):
         return default
 
-class ReportEventView(LoginRequiredMixin, BaseReportView):
+class ReportEventView(BaseReportView):
     def get(self, request, **kwargs):
         type = request.GET.get('type', None)
 
@@ -144,9 +147,10 @@ class ReportEventView(LoginRequiredMixin, BaseReportView):
         return self.render(report_filename, context)
 
 
-class ReportEventMemberView(LoginRequiredMixin, generic.DetailView):
+class ReportEventMemberView(PermissionRequiredMixin, generic.DetailView):
     model = Member
     template_name = 'reports/activity-member.html'
+    permission_required = 'main.view_report'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -159,7 +163,9 @@ class ReportEventMemberView(LoginRequiredMixin, generic.DetailView):
         return context
 
 
-class CertExpireView(LoginRequiredMixin, BaseReportView):
+class CertExpireView(BaseReportView):
+    permission_required = 'main.view_report'
+
     def get(self, request, **kwargs):
 
         type = request.GET.get('type', None)
@@ -186,7 +192,9 @@ class CertExpireView(LoginRequiredMixin, BaseReportView):
         return self.render('cert-expire.html', context)
 
 
-class ReportRosterView(LoginRequiredMixin, BaseReportView):
+class ReportRosterView(BaseReportView):
+    permission_required = 'main.view_report'
+
     def get(self, request, **kwargs):
 
         if (kwargs['roster_type'] == 'names.html'):
@@ -211,7 +219,9 @@ class ReportRosterView(LoginRequiredMixin, BaseReportView):
         return self.render(report_filename, context)
 
 
-class ReportRosterCsvView(LoginRequiredMixin, View):
+class ReportRosterCsvView(PermissionRequiredMixin, View):
+    permission_required = 'main.view_report'
+
     def get(self, request, **kwargs):
         buffer = io.StringIO()
         members = (
@@ -278,7 +288,9 @@ class ReportRosterCsvView(LoginRequiredMixin, View):
         return data
 
 
-class ReportRosterVcfView(LoginRequiredMixin, View):
+class ReportRosterVcfView(PermissionRequiredMixin, View):
+    permission_required = 'main.view_report'
+
     def get(self, request, **kwargs):
         members = (
             Member.members
@@ -326,7 +338,9 @@ class ReportRosterVcfView(LoginRequiredMixin, View):
         return card
 
 
-class ReportEventErrorsView(LoginRequiredMixin, View):
+class ReportEventErrorsView(PermissionRequiredMixin, View):
+    permission_required = 'main.view_report'
+
     def errors(self, participants, message):
         return self.messages('Error', participants, message)
 

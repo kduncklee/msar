@@ -113,6 +113,11 @@ class DistributionInline(InlineDefaults):
     model = Distribution
 
 
+@admin.register(RsvpTemplate)
+class RsvpTemplateAdmin(admin.ModelAdmin):
+    list_display = ('name', 'prompt',)
+
+
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('author', 'text', 'created_at',

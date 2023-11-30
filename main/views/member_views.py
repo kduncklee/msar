@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Prefetch
 from django import forms
@@ -37,9 +36,10 @@ class MemberStatusTypeMixin:
             MemberStatusType.displayed.all().order_by('position'))
         return context
 
-class MemberListView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):
+class MemberListView(PermissionRequiredMixin, MemberStatusTypeMixin, generic.ListView):
     template_name = 'member_list.html'
     context_object_name = 'member_list'
+    permission_required = 'main.view_member'
 
     def get_queryset(self):
         """Return the member list."""
@@ -50,18 +50,20 @@ class MemberListView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView
         )
 
 
-class MemberDetailView(LoginRequiredMixin, generic.DetailView):
+class MemberDetailView(PermissionRequiredMixin, generic.DetailView):
     model = Member
     template_name = 'member_detail.html'
+    permission_required = 'main.view_member'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return context
 
 
-class MemberHistoryView(LoginRequiredMixin, generic.DetailView):
+class MemberHistoryView(PermissionRequiredMixin, generic.DetailView):
     model = Member
     template_name = 'member_history.html'
+    permission_required = 'main.view_member'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -233,14 +235,16 @@ class MemberAddView(PermissionRequiredMixin, generic.edit.FormView):
         return HttpResponseRedirect(m.get_absolute_url())
 
 
-class MemberPhotoView(LoginRequiredMixin, generic.DetailView):
+class MemberPhotoView(PermissionRequiredMixin, generic.DetailView):
     model = Member
     template_name = 'member_photos.html'
+    permission_required = 'main.view_memberphoto'
 
 
-class MemberCertListView(LoginRequiredMixin, generic.ListView):
+class MemberCertListView(PermissionRequiredMixin, generic.ListView):
     template_name = 'member_cert_list.html'
     context_object_name = 'cert_list'
+    permission_required = 'main.view_member'
 
     def get_queryset(self):
         qs = Cert.objects.filter(member=self.kwargs['pk'])
@@ -318,7 +322,7 @@ class CertEditMixin(PermissionRequiredMixin, generic.edit.ModelFormMixin):
         return context
 
 
-class CertCreateView(LoginRequiredMixin, CertEditMixin, generic.edit.CreateView):
+class CertCreateView(CertEditMixin, generic.edit.CreateView):
     permission_required = 'main.add_cert'
     def get_cert_type(self):
         if self.request.method == 'POST':
@@ -333,9 +337,10 @@ class CertCreateView(LoginRequiredMixin, CertEditMixin, generic.edit.CreateView)
         return context
 
 
-class CertListView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):
+class CertListView(PermissionRequiredMixin, MemberStatusTypeMixin, generic.ListView):
     template_name = 'cert_list.html'
     context_object_name = 'member_list'
+    permission_required = 'main.view_member'
 
     def get_queryset(self):
         # 0 = cert
@@ -374,9 +379,10 @@ def cert_file_download_view(request, cert, **kwargs):
     return download_file_helper(c.cert_file.url)
 
 
-class AvailableListView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):
+class AvailableListView(PermissionRequiredMixin, MemberStatusTypeMixin, generic.ListView):
     template_name = 'available_list.html'
     context_object_name = 'member_list'
+    permission_required = 'main.view_unavailable'
 
     # TODO split this into a Mixin shared with DoAbstractView and API
     def get_date_param(self, name):
@@ -434,9 +440,10 @@ class AvailableListView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListV
                               for d in range(self.days)]
         return context
 
-class MemberAvailabilityListView(LoginRequiredMixin, generic.ListView):
+class MemberAvailabilityListView(PermissionRequiredMixin, generic.ListView):
     template_name = 'member_availability_list.html'
     context_object_name = 'availability_list'
+    permission_required = 'main.view_unavailable'
 
     def get_queryset(self):
         """Return the availability list."""
@@ -450,13 +457,15 @@ class MemberAvailabilityListView(LoginRequiredMixin, generic.ListView):
         return context
 
 
-class DoMemberDetailView(LoginRequiredMixin, generic.DetailView):
+class DoMemberDetailView(PermissionRequiredMixin, generic.DetailView):
     model = Member
     template_name = 'member_do_availability_list.html'
+    permission_required = 'main.view_doavailable'
     
 
-class DoMyAvailabilityView(LoginRequiredMixin, generic.DetailView):
+class DoMyAvailabilityView(PermissionRequiredMixin, generic.DetailView):
     template_name = 'member_do_availability_list.html'
+    permission_required = 'main.view_doavailable'
 
     def get_object(self):
         return get_object_or_404(Member, pk=self.request.user.id)

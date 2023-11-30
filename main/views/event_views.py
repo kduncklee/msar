@@ -1,7 +1,6 @@
 from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Prefetch
 from django.forms.models import ModelForm, modelformset_factory
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
@@ -11,6 +10,7 @@ from django.utils import timezone
 from django.views import generic
 from django.forms import widgets
 from django.forms.widgets import HiddenInput, Select, Widget, SelectDateWidget
+from rules.contrib.views import PermissionRequiredMixin
 
 from main.lib.gcal import get_gcal_manager
 from main.models import Member, MemberStatusType, Event, Participant, Period
@@ -29,10 +29,11 @@ from django.utils.html import escape
 
 from django_q.tasks import async_task
 
-class EventListView(LoginRequiredMixin, generic.ListView):
+class EventListView(PermissionRequiredMixin, generic.ListView):
     """ This view does not do anything anymore, left as an example of a simple view """ 
     template_name = 'event_list.html'
     context_object_name = 'event_list'
+    permission_required = 'main.view_event'
 
     def get_queryset(self):
         """Example: create query set """
@@ -60,9 +61,10 @@ class EventPublishedListView(generic.ListView):
         return f.qs
 
 
-class EventDetailView(LoginRequiredMixin, generic.DetailView):
+class EventDetailView(PermissionRequiredMixin, generic.DetailView):
     model = Event
     template_name = 'event_detail.html'
+    permission_required = 'main.view_event'
 
     def get_queryset(self):
         return super().get_queryset().prefetch_related(
@@ -153,10 +155,11 @@ class EventForm(ModelForm):
         return cleaned_data
 
 
-class EventUpdateView(LoginRequiredMixin, generic.edit.UpdateView):
+class EventUpdateView(PermissionRequiredMixin, generic.edit.UpdateView):
     model = Event
     form_class = EventForm
     template_name = 'event_create.html'
+    permission_required = 'main.change_event'
 
     def get_form(self):
         form = super(EventUpdateView, self).get_form()
@@ -181,10 +184,11 @@ class EventUpdateView(LoginRequiredMixin, generic.edit.UpdateView):
         return context
 
 
-class EventCreateView(LoginRequiredMixin, generic.edit.CreateView):
+class EventCreateView(PermissionRequiredMixin, generic.edit.CreateView):
     model = Event
     form_class = EventForm
     template_name = 'event_create.html'
+    permission_required = 'main.add_event'
 
     def get_form(self):
         form = super(EventCreateView, self).get_form()
@@ -212,19 +216,21 @@ class EventCreateView(LoginRequiredMixin, generic.edit.CreateView):
         return context
 
 
-class EventPeriodAddView(LoginRequiredMixin, generic.base.RedirectView):
+class EventPeriodAddView(PermissionRequiredMixin, generic.base.RedirectView):
     pattern_name = 'event_detail'
+    permission_required = 'main.add_period'
     def get_redirect_url(self, *args, **kwargs):
         e = get_object_or_404(Event, pk=kwargs.get('pk'))
         e.add_period()
         return super().get_redirect_url(*args, **kwargs)
 
 
-class PeriodParticipantCreateView(LoginRequiredMixin, MemberStatusTypeMixin, generic.ListView):    
+class PeriodParticipantCreateView(PermissionRequiredMixin, MemberStatusTypeMixin, generic.ListView):    
     model = Participant
     fields = ['member', 'ahc', 'ol', 'period']
     context_object_name = 'member_list'
     template_name = 'period_participant_add.html'
+    permission_required = 'main.add_participant'
 
     def get_queryset(self):
         """Return the member list."""
@@ -252,5 +258,6 @@ class PeriodParticipantCreateView(LoginRequiredMixin, MemberStatusTypeMixin, gen
         context['event_id'] = period.event.id
         return context
 
-class EventCalendarView(LoginRequiredMixin, generic.base.TemplateView):
+class EventCalendarView(PermissionRequiredMixin, generic.base.TemplateView):
     template_name = 'event_calendar.html'
+    permission_required = 'main.view_event'
