@@ -15,6 +15,35 @@
     <div id='calendar'></div>
   </div>
 </main>
+
+<div class="modal fade" id="patrolModal" tabindex="-1" role="dialog" aria-labelledby="patrolModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="patrolModalLabel">Patrol</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="patrolModalComment" class="col-form-label">Comment:</label>
+            <textarea class="form-control" id="patrolModalComment"></textarea>
+          </div>
+          <input type="hidden" id="patrolModalDate" value=""/>
+          <input type="hidden" id="patrolModalId" value=""/>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="patrolModalDelete">Delete</button>
+        <button type="button" class="btn btn-primary" id="patrolModalUpdate">Update</button>
+        <button type="button" class="btn btn-primary" id="patrolModalCreate">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock content %}
 
 {% block js %}
@@ -26,25 +55,24 @@
     <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
     <script>
 
-function RefetchPatrols(calendar) {
-  var patrolSource = calendar.getEventSourceById('patrols');
+function RefetchPatrols() {
+  var patrolSource = window.calendar.getEventSourceById('patrols');
   patrolSource.refetch();
 }
 
-function AddPatrol(date, calendar) {
+function AddPatrol(date, description) {
   var data = {
     date: date,
-    description: ""
+    description: description
   };
   $.ajax({
     method: 'POST',
     contentType: 'application/x-www-form-urlencoded',
-    url: '{% url "patrol-list" %}',
+    url: '{% url "api:patrol-list" %}',
     data: data,
-    context: calendar,
     success: function (response) {
       console.log('PostAction success.');
-      RefetchPatrols(this);
+      RefetchPatrols();
     },
     error: function (xhr) {
       console.log('PostAction failed');
@@ -55,15 +83,36 @@ function AddPatrol(date, calendar) {
   })
 }
 
-function DeletePatrol (id, calendar) {
+function UpdatePatrol(id, description) {
+  var data = {
+    description: description
+  };
+  $.ajax({
+    method: 'PATCH',
+    contentType: 'application/x-www-form-urlencoded',
+    url: '{% url "api:patrol-list" %}' + id + '/',
+    data: data,
+    success: function (response) {
+      console.log('PostAction success.');
+      RefetchPatrols();
+    },
+    error: function (xhr) {
+      console.log('PostAction failed');
+      console.log(xhr);
+      if (xhr.responseText) alert(xhr.responseText);
+      return false;
+    }
+  })
+}
+
+function DeletePatrol(id) {
   $.ajax({
     method: 'DELETE',
     contentType: 'application/x-www-form-urlencoded',
-    url: '{% url "patrol-list" %}' + id + '/',
-    context: calendar,
+    url: '{% url "api:patrol-list" %}' + id + '/',
     success: function (response) {
       console.log('DeletePatrol success.');
-      RefetchPatrols(this);
+      RefetchPatrols();
     },
     error: function (xhr) {
       console.log('DeletePatrol failed');
@@ -72,6 +121,26 @@ function DeletePatrol (id, calendar) {
       return false;
     }
   })
+}
+
+function ShowCreatePatrolModal(date) {
+  $("#patrolModalLabel").text("Create Patrol - " + date);
+  $("#patrolModalDate").val(date);
+  $("#patrolModalComment").val("");
+  $("#patrolModalDelete").hide();
+  $("#patrolModalUpdate").hide();
+  $("#patrolModalCreate").show();
+  $("#patrolModal").modal('show');
+}
+
+function ShowEditPatrolModal(event) {
+  $("#patrolModalLabel").text("Edit Patrol - " + event.start.toLocaleDateString());
+  $("#patrolModalId").val(event.id);
+  $("#patrolModalComment").val(event.extendedProps.description);
+  $("#patrolModalDelete").show();
+  $("#patrolModalUpdate").show();
+  $("#patrolModalCreate").hide();
+  $("#patrolModal").modal('show');
 }
 
 function HandleDateClick(info) {
@@ -88,18 +157,19 @@ function HandleDateClick(info) {
         (e.extendedProps.member.id == {{ user.id}})
        ) {
       console.log(' found');
+      ShowEditPatrolModal(e);
       return;
     }
   }
   console.log(' not found');
-  AddPatrol(info.dateStr, this);
+  ShowCreatePatrolModal(info.dateStr);
 }
 
 function HandleEventClick(info) {
   if (info.event.extendedProps.patrol) {
     if (info.event.extendedProps.member.id == {{ user.id }}) {
       console.log('clicked on ' + info.event);
-      DeletePatrol(info.event.id, this);
+      ShowEditPatrolModal(info.event);
     }
   }
 }
@@ -109,7 +179,7 @@ var eventSources = [
     id: 'events',
     color: 'lightgrey',
     textColor: 'black',
-    url: '{% url 'event-list' %}',
+    url: '{% url 'api:event-list' %}',
     startParam: 'finish_at_iso_after',
     endParam: 'start_at_iso_before',
     success: function(response) {
@@ -131,7 +201,7 @@ var eventSources = [
   },
   {
     id: 'patrols',
-    url: '{% url 'patrol-list' %}',
+    url: '{% url 'api:patrol-list' %}',
     startParam: 'date_after',
     endParam: 'date_before',
     success: function(response) {
@@ -196,10 +266,21 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   calendar.render();
 
-  $('[data-toggle="tooltip"]').tooltip();
 
-  //calendar.on('dateClick', HandleDateClick);
-  //calendar.on('eventClick', HandleEventClick);
+  $("#patrolModalCreate").on("click", function() {
+    $("#patrolModal").modal('hide');
+    AddPatrol($("#patrolModalDate").val(), $("#patrolModalComment").val());
+  });
+  $("#patrolModalDelete").on("click", function() {
+    $("#patrolModal").modal('hide');
+    DeletePatrol($("#patrolModalId").val());
+  });
+  $("#patrolModalUpdate").on("click", function() {
+    $("#patrolModal").modal('hide');
+    UpdatePatrol($("#patrolModalId").val(), $("#patrolModalComment").val());
+  });
+
+  window.calendar = calendar;
 });
 
 
