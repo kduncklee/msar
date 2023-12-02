@@ -56,6 +56,8 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
             object.start_at = timezone.now()
         if object.status is None:
             object.status = 'active'
+        if object.created_by is None:
+            object.created_by = self.request.user
         object.save()
         self.object = object
         return HttpResponseRedirect(self.get_success_url())

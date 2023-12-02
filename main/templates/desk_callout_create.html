@@ -14,3 +14,14 @@
   </div>
 </main>
 {% endblock content %}
+
+{% block js %}
+{{ block.super }}
+<script>
+'use strict'
+$(function () {
+  // Show all items without scrolling
+  $("#id_notifications_made").attr("size",$("#id_notifications_made option").length);
+});
+</script>
+{% endblock js %}

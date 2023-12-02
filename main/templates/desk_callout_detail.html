@@ -5,7 +5,7 @@
 
 {% block subheader %}
 <strong>
-  <a href='{% url "desk_callout_list" %}'> Callouts </a>&gt; {{ event.title }}
+  <a href='{% url "desk_callout_list" %}'> Active Callouts </a>&gt; {{ event.title }}
 </strong>
 
 <ul class="navbar-nav ml-auto">
@@ -18,7 +18,7 @@
   <li class="nav-item">
     <a class="" href="" data-toggle="modal" data-target="#resolveModal">
       <span>&nbsp;</span> {#FIXME: shouldn't be necessary #}
-      <i class="fa fa-ban"></i> Resolve / 10-22
+      <i class="fa fa-ban"></i> Cancel Callout / 10-22
     </a>
   </li>
 </ul>
@@ -86,6 +86,7 @@
       {% endif %}
       {% endif %}
     </p>
+    <p><strong>Created by:</strong> {{ event.created_by|default_if_none:'' }}</p>
 
     <p><strong>Log:</strong>
       <ul class="list-group">
@@ -147,9 +148,14 @@
 'use strict'
 $(document).ready(function () {
   $("#log-form").submit(function (event) {
+    event.preventDefault();
+    var message = $("#message").val();
+    if (message == "") {
+      return;
+    }
     var data = {
       type: "message",
-      message: $("#message").val(),
+      message: message,
     };
 
     $.ajax({
@@ -167,8 +173,6 @@ $(document).ready(function () {
         return false;
       },
     });
-
-    event.preventDefault();
   });
   $("#resolve-form").submit(function (event) {
     var data = {
