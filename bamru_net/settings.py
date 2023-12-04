@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'simple_history',
     'social_django',
     'storages',
+    ] + [e.strip() for e in os.environ['EXTRA_INSTALLED_APPS'].split(',')] + [
     'main',
     'main.templatetags.filters',
     'django.contrib.admin',  # Must be after main for templates
