@@ -25,8 +25,11 @@ def send_push_message_firebase(title, body, data=None, member_ids=None):
     devices.send_message(m)
 
 def send_push_message_expo(title, body, data=None,
-                           member_ids=None, channel=None, critical=False):
+                           member_ids=None, channel=None, critical=False,
+                           device_type=None):
     devices = FCMDevice.objects.filter(registration_id__startswith=EXPO_ID_PREFIX)
+    if device_type is not None:
+        devices = devices.filter(type=device_type)
     if member_ids is not None:
         devices = devices.filter(user_id__in=member_ids)
     if not devices:
@@ -63,6 +66,8 @@ def send_push_message(title, body, data=None,
     if settings.FIREBASE_APP:
         send_push_message_firebase(title, body, data, member_ids)
     elif settings.EXPO_APP:
-        send_push_message_expo(title, body, data, member_ids, channel, critical)
+        # Andoid and iOS may use different projects, so send separately.
+        send_push_message_expo(title, body, data, member_ids, channel, critical, 'android')
+        send_push_message_expo(title, body, data, member_ids, channel, critical, 'ios')
     else:
         print('Skipping push message for "{}"'.format(title))
