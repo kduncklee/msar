@@ -72,7 +72,7 @@ class TestApi(APITestCase):
                                description=description,
                                responses=responses)
 
-    @patch('main.lib.push.send_push_message_expo')
+    @patch('main.lib.push.send_push_message')
     def test_app_flow(self, mock_send_push_message):
         TITLE = 'callout title'
         DESC = 'here is what happened.'
@@ -95,10 +95,10 @@ class TestApi(APITestCase):
              }, format='json')
         self.assertEqual(response.status_code, 201)
         mock_send_push_message.assert_called_once()
-        args = mock_send_push_message.call_args.args
-        self.assertEqual(args[0], 'New Callout')
-        self.assertIn(self.user.id, args[3])
-        self.assertIn(self.other_user.id, args[3])
+        kwargs = mock_send_push_message.call_args.kwargs
+        self.assertEqual(kwargs['title'], 'New Callout')
+        self.assertIn(self.user.id, kwargs['member_ids'])
+        self.assertIn(self.other_user.id, kwargs['member_ids'])
         mock_send_push_message.reset_mock()
         cid = response.data.get('id')
         self._check_event_data(data=response.data, title=TITLE, description=DESC)
@@ -110,10 +110,10 @@ class TestApi(APITestCase):
                                     {'type':'message', 'message': 'testing'})
         self.assertEqual(response.status_code, 201)
         mock_send_push_message.assert_called_once()
-        args = mock_send_push_message.call_args.args
-        self.assertEqual(args[0], 'Callout log updated')
-        self.assertRegexpMatches(args[1], 'testing')
-        self.assertEqual(args[3], [])
+        kwargs = mock_send_push_message.call_args.kwargs
+        self.assertEqual(kwargs['title'], 'Callout log updated')
+        self.assertRegexpMatches(kwargs['body'], 'testing')
+        self.assertEqual(kwargs['member_ids'], [])
         mock_send_push_message.reset_mock()
         response = self.client.get('{}callouts/{}/log/'.format(self.uri, cid))
         self.assertEqual(response.status_code, 200)
@@ -129,9 +129,9 @@ class TestApi(APITestCase):
         self._check_event(id=cid, title=TITLE, description=DESC, responses=1)
         self.assertEqual(len(Participant.objects.filter(member=self.user)), 0)
         mock_send_push_message.assert_called_once()
-        args = mock_send_push_message.call_args.args
-        self.assertEqual(args[0], 'Callout log updated')
-        self.assertEqual(args[3], [])
+        kwargs = mock_send_push_message.call_args.kwargs
+        self.assertEqual(kwargs['title'], 'Callout log updated')
+        self.assertEqual(kwargs['member_ids'], [])
         mock_send_push_message.reset_mock()
 
         # Other user responds yes
@@ -142,9 +142,9 @@ class TestApi(APITestCase):
         self._check_event(id=cid, title=TITLE, description=DESC, responses=2)
         self.assertEqual(len(Participant.objects.filter(member=self.other_user)), 1)
         mock_send_push_message.assert_called_once()
-        args = mock_send_push_message.call_args.args
-        self.assertEqual(args[0], 'Callout log updated')
-        self.assertEqual(args[3], [])
+        kwargs = mock_send_push_message.call_args.kwargs
+        self.assertEqual(kwargs['title'], 'Callout log updated')
+        self.assertEqual(kwargs['member_ids'], [])
         mock_send_push_message.reset_mock()
 
         # First user responds yes
@@ -155,9 +155,9 @@ class TestApi(APITestCase):
         self._check_event(id=cid, title=TITLE, description=DESC, responses=2)
         self.assertEqual(len(Participant.objects.filter(member=self.user)), 1)
         mock_send_push_message.assert_called_once()
-        args = mock_send_push_message.call_args.args
-        self.assertEqual(args[0], 'Callout log updated')
-        self.assertEqual(args[3], [self.other_user.id])
+        kwargs = mock_send_push_message.call_args.kwargs
+        self.assertEqual(kwargs['title'], 'Callout log updated')
+        self.assertEqual(kwargs['member_ids'], [self.other_user.id])
         mock_send_push_message.reset_mock()
 
         # Callout complete
@@ -166,13 +166,13 @@ class TestApi(APITestCase):
         # print(response.data)
         self.assertEqual(response.status_code, 200)
         mock_send_push_message.assert_called()
-        args = mock_send_push_message.call_args_list[0].args
-        self.assertEqual(args[0], 'Callout Resolved')
-        self.assertEqual(args[1], 'ok')
-        self.assertIn(self.user.id, args[3])
-        self.assertIn(self.other_user.id, args[3])
-        args = mock_send_push_message.call_args_list[1].args
-        self.assertEqual(args[0], 'Callout updated')
-        self.assertRegexpMatches(args[1], 'status')
-        self.assertEqual(args[3], [self.other_user.id])
+        kwargs = mock_send_push_message.call_args_list[0].kwargs
+        self.assertEqual(kwargs['title'], 'Callout Resolved')
+        self.assertEqual(kwargs['body'], 'ok')
+        self.assertIn(self.user.id, kwargs['member_ids'])
+        self.assertIn(self.other_user.id, kwargs['member_ids'])
+        kwargs = mock_send_push_message.call_args_list[1].kwargs
+        self.assertEqual(kwargs['title'], 'Callout updated')
+        self.assertRegexpMatches(kwargs['body'], 'status')
+        self.assertEqual(kwargs['member_ids'], [self.other_user.id])
         mock_send_push_message.reset_mock()

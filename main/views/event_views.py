@@ -24,7 +24,6 @@ import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.utils.html import escape
 
 from django_q.tasks import async_task
