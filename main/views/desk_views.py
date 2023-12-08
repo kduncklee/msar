@@ -17,11 +17,12 @@ class CalloutForm(ModelForm):
     class Meta:
         model = Event
         fields = [
+            'handling_unit',
             'operation_type', 'title', 'description',
             'location', 'lat', 'lon',
-            'location_address', 'location_city', 'location_state', 'location_zip',
+            'location_address', 'location_city',
             'subject', 'subject_contact', 'informant', 'informant_contact',
-            'radio_channel', 'handling_unit',
+            'radio_channel',
             'notifications_made',
         ]
 
@@ -41,10 +42,15 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
         form.fields['title'].label = "Title (short description)"
         form.fields['description'].label = "Description with additional details"
         form.fields['description'].widget.attrs = { 'rows':4 }
-        form.fields['radio_channel'].label = "Tactical Channel"
+        form.fields['location'].label = 'Incident Location (Physical description, e.g. "Rock Pool", "S/O tunnel 3")'
+        form.fields['lat'].label = 'Incident Coordinates Lat. (Example: 34.137018)'
+        form.fields['lon'].label = 'Incident Coordinates Long. (Example: -118.714410)'
+
+        form.fields['radio_channel'].label = "Tactical Channel (Example: LHS-Metro)"
         form.fields['handling_unit'].label = "Tag / Handling Unit"
-        form.fields['subject_contact'].label = "Subject contact (phone number)"
-        form.fields['informant_contact'].label = "Subject contact (phone number)"
+        form.fields['subject'].label = "DP/Subject"
+        form.fields['subject_contact'].label = "DP/Subject Phone Number)"
+        form.fields['informant_contact'].label = "Informant Phone Number"
 
         return form
 
