@@ -25,36 +25,53 @@ def send_push_message_firebase(title, body, data=None, member_ids=None):
     devices.send_message(m)
 
 def send_push_message_expo(title, body, data=None,
-                           member_ids=None, channel=None, critical=False,
-                           device_type=None):
+                           member_ids=None, channel=None, critical=False):
     devices = FCMDevice.objects.filter(registration_id__startswith=EXPO_ID_PREFIX)
-    if device_type is not None:
-        devices = devices.filter(type=device_type)
     if member_ids is not None:
         devices = devices.filter(user_id__in=member_ids)
     if not devices:
         print('No Expo devices found')
         return
-    message = {
-        'to': [d.registration_id for d in devices],
-        'title': title,
-        'body': body,
-        'data': data,
-        'priority': 'high',
-    }
-    if channel is not None:
-        message['channelId'] = channel
-    if critical:  # for iOS
-        message['sound'] = {'critical':True}
     session = requests.Session()
     session.headers.update({
         'accept': 'application/json',
         'accept-encoding': 'gzip, deflate',
         'content-type': 'application/json',
     })
-    response = session.post(EXPO_SEND, data=json.dumps(message))
-    print(response)
-    print(response.json())
+    critical_choices = [False]
+    if critical:
+        critical_choices.append(True)
+    # Andoid and iOS may use different projects, so send separately.
+    for device_type in ['ios', 'android']:
+        for critical_choice in critical_choices:
+            devices = devices.filter(type=device_type)
+            if critical:
+                # The device_id field is now used to store if that device
+                # wants to receive a notification on the critical channel.
+                # Null indicates to send using normal methods.
+                if critical_choice:
+                    devices = devices.filter(device_id__isnull=False)
+                else:
+                    devices = devices.filter(device_id__isnull=True)
+            if not devices:
+                continue
+            message = {
+                'to': [d.registration_id for d in devices],
+                'title': title,
+                'body': body,
+                'data': data,
+                'priority': 'high',
+            }
+            if channel is not None:  # for Android
+                if critical_choice:
+                    message['channelId'] = channel + '-alarm'
+                else:
+                    message['channelId'] = channel
+            if critical_choice:  # for iOS
+                message['sound'] = {'critical':True}
+            print('{}, {}: {}'.format(device_type, critical, message['to']))
+            response = session.post(EXPO_SEND, data=json.dumps(message))
+            print('{}: {}'. format(response, response.json()))
 
 def send_push_message(title, body, data=None,
                       member_ids=None, channel=None, critical=False):
@@ -62,12 +79,10 @@ def send_push_message(title, body, data=None,
         data = {'title': title, 'body': body}
     if len(body) > 120:
         body = body[:119] + '…'
-    print('Sending push message: {}: "{}" filtered to {}'.format(title, body, member_ids))
+    print('Sending push message: {}: "{}" filtered to {}'.format(title, body, sorted(member_ids)))
     if settings.FIREBASE_APP:
         send_push_message_firebase(title, body, data, member_ids)
     elif settings.EXPO_APP:
-        # Andoid and iOS may use different projects, so send separately.
-        send_push_message_expo(title, body, data, member_ids, channel, critical, 'android')
-        send_push_message_expo(title, body, data, member_ids, channel, critical, 'ios')
+        send_push_message_expo(title, body, data, member_ids, channel, critical)
     else:
         print('Skipping push message for "{}"'.format(title))
