@@ -175,6 +175,7 @@ $(document).ready(function () {
     });
   });
   $("#resolve-form").submit(function (event) {
+    event.preventDefault();
     var data = {
       status: "resolved",
       resolution: $("#resolution").val(),
