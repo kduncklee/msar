@@ -111,7 +111,7 @@ class TestApi(APITestCase):
         self.assertEqual(response.status_code, 201)
         mock_send_push_message.assert_called_once()
         kwargs = mock_send_push_message.call_args.kwargs
-        self.assertEqual(kwargs['title'], 'Callout log updated')
+        self.assertEqual(kwargs['title'], 'Callout log - john doe')
         self.assertRegexpMatches(kwargs['body'], 'testing')
         self.assertEqual(kwargs['member_ids'], [])
         mock_send_push_message.reset_mock()
@@ -130,7 +130,7 @@ class TestApi(APITestCase):
         self.assertEqual(len(Participant.objects.filter(member=self.user)), 0)
         mock_send_push_message.assert_called_once()
         kwargs = mock_send_push_message.call_args.kwargs
-        self.assertEqual(kwargs['title'], 'Callout log updated')
+        self.assertEqual(kwargs['title'], 'Callout log - john doe')
         self.assertEqual(kwargs['member_ids'], [])
         mock_send_push_message.reset_mock()
 
@@ -143,7 +143,7 @@ class TestApi(APITestCase):
         self.assertEqual(len(Participant.objects.filter(member=self.other_user)), 1)
         mock_send_push_message.assert_called_once()
         kwargs = mock_send_push_message.call_args.kwargs
-        self.assertEqual(kwargs['title'], 'Callout log updated')
+        self.assertEqual(kwargs['title'], 'Callout log - jane doe')
         self.assertEqual(kwargs['member_ids'], [])
         mock_send_push_message.reset_mock()
 
@@ -156,7 +156,7 @@ class TestApi(APITestCase):
         self.assertEqual(len(Participant.objects.filter(member=self.user)), 1)
         mock_send_push_message.assert_called_once()
         kwargs = mock_send_push_message.call_args.kwargs
-        self.assertEqual(kwargs['title'], 'Callout log updated')
+        self.assertEqual(kwargs['title'], 'Callout log - john doe')
         self.assertEqual(kwargs['member_ids'], [self.other_user.id])
         mock_send_push_message.reset_mock()
 
@@ -172,7 +172,7 @@ class TestApi(APITestCase):
         self.assertIn(self.user.id, kwargs['member_ids'])
         self.assertIn(self.other_user.id, kwargs['member_ids'])
         kwargs = mock_send_push_message.call_args_list[1].kwargs
-        self.assertEqual(kwargs['title'], 'Callout updated')
+        self.assertEqual(kwargs['title'], 'Callout updated - john doe')
         self.assertRegexpMatches(kwargs['body'], 'status')
         self.assertEqual(kwargs['member_ids'], [self.other_user.id])
         mock_send_push_message.reset_mock()

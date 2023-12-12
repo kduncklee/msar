@@ -98,9 +98,9 @@ def m2m_changed_handler(sender, instance, action, pk_set, **kwargs):
 
 @receiver(post_save, sender=CalloutLog)
 def log_post_save_handler(sender, instance, created, **kwargs):
-    title = "Callout log updated"
+    title = "Callout log - {}".format(instance.member.username)
     if instance.type == 'system':
-        title = "Callout updated"
+        title = "Callout updated - {}".format(instance.member.username)
     body = instance.message
     if not body:
         body = instance.update
