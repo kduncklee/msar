@@ -447,7 +447,7 @@ class OutboundEmail(OutboundMessage):
                     self.distribution.message.time_slug),
                 body=body,
                 to=[self.destination],
-                from_email=settings.MAILGUN_EMAIL_FROM,
+                from_email=settings.DEFAULT_FROM_EMAIL,
             )
             message.attach_alternative(
                 '<html>{}</html>'.format(html_body), 'text/html')

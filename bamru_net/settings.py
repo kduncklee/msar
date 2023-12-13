@@ -262,21 +262,29 @@ SITE_URL = '{}://{}'.format(os.environ.get('DJANGO_SCHEMA', 'https'), HOSTNAME)
 # Temporary fix for #128
 DJANGO_TWILIO_FORGERY_PROTECTION=False
 
+
+ANYMAIL = {'WEBHOOK_SECRET': os.environ['ANYMAIL_WEBHOOK_SECRET']}
+DEFAULT_FROM_EMAIL = os.environ['EMAIL_FROM']
 if os.environ.get('MESSAGE_FILE_PATH'):
     EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
     EMAIL_FILE_PATH = os.environ['MESSAGE_FILE_PATH']
     SMS_FILE_PATH = EMAIL_FILE_PATH
-else:
+elif os.environ.get('MAILGUN_API_KEY'):
     EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
     SMS_FILE_PATH = None
+    ANYMAIL.update({
+        'MAILGUN_API_KEY': os.environ['MAILGUN_API_KEY'],
+        'MAILGUN_WEBHOOK_SIGNING_KEY': os.environ['MAILGUN_WEBHOOK_SIGNING_KEY'],
+    })
+elif os.environ.get('SENDINBLUE_API_KEY'):
+    EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
+    SMS_FILE_PATH = None
+    ANYMAIL.update({
+        'SENDINBLUE_API_KEY': os.environ['SENDINBLUE_API_KEY']
+    })
+else:
+    SMS_FILE_PATH = None
 
-ANYMAIL = {
-    'WEBHOOK_SECRET': os.environ['MAILGUN_WEBHOOK_SECRET'],
-    'MAILGUN_API_KEY': os.environ['MAILGUN_API_KEY'],
-    'MAILGUN_WEBHOOK_SIGNING_KEY': os.environ['MAILGUN_WEBHOOK_SIGNING_KEY'],
-}
-MAILGUN_EMAIL_FROM = os.environ['MAILGUN_EMAIL_FROM']
-DEFAULT_FROM_EMAIL = os.environ['MAILGUN_EMAIL_FROM']
 
 # Used for tests
 GOOGLE_CREDENTIALS_FILE = os.environ.get('GOOGLE_CREDENTIALS_FILE', '')

@@ -406,7 +406,7 @@ def sms(request):
                 body='{}\nFrom: {} ({})'.format(
                     twilio_request_body, sms.member, twilio_request.from_),
                 to=[global_preferences['google__do_group']],
-                from_email=settings.MAILGUN_EMAIL_FROM,
+                from_email=settings.DEFAULT_FROM_EMAIL,
             )
             message.send()
         except Exception as e:
