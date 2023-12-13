@@ -18,10 +18,13 @@ class CalloutForm(ModelForm):
         model = Event
         fields = [
             'handling_unit',
-            'operation_type', 'title', 'description',
+            'operation_type',
+            'title',
             'location', 'lat', 'lon',
             'location_address', 'location_city',
-            'subject', 'subject_contact', 'informant', 'informant_contact',
+            'informant', 'informant_contact',
+            'description',
+            'subject', 'subject_contact',
             'radio_channel',
             'notifications_made',
         ]
@@ -39,20 +42,47 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
             c for c in form.fields['operation_type'].choices
             if c[0] != 'information']
 
-        form.fields['title'].label = "Title (short description)"
-        form.fields['description'].label = "Description with additional details"
-        form.fields['description'].widget.attrs = { 'rows':4 }
-        form.fields['location'].label = 'Incident Location (Physical description, e.g. "Rock Pool", "S/O tunnel 3")'
-        form.fields['lat'].label = 'Incident Coordinates Lat. (Example: 34.137018)'
-        form.fields['lon'].label = 'Incident Coordinates Long. (Example: -118.714410)'
+        form.fields['handling_unit'].label = "Tag & Handling Unit"
+        form.fields['handling_unit'].help_text = "Tag Number and Handling Unit"
+        form.fields['handling_unit'].widget.attrs['placeholder'] = ''
 
-        form.fields['radio_channel'].label = "Tactical Channel (Example: LHS-Metro)"
-        form.fields['handling_unit'].label = "Tag / Handling Unit"
-        form.fields['subject'].label = "DP/Subject"
-        form.fields['subject_contact'].label = "DP/Subject Phone Number)"
+        form.fields['title'].label = "Incident Name or Radio Code"
+        form.fields['title'].help_text = 'Short name of incident or radio code (Example, either "Car over the side", "901T")'
+        form.fields['title'].widget.attrs['placeholder'] = ''
+
+        form.fields['location'].label = "Incident Location"
+        form.fields['location'].help_text = 'Physical description of location, Example: "Rock Pool", "S/O tunnel 3")'
+        form.fields['location'].widget.attrs['placeholder'] = ''
+
+        form.fields['lat'].label = 'Location Lat'
+        form.fields['lat'].help_text = 'Incident Coordinates Latitude (Example: 34.137018)'
+        form.fields['lat'].widget.attrs['placeholder'] = ''
+
+        form.fields['lon'].label = 'Location Long'
+        form.fields['lon'].help_text = 'Incident Coordinates Longitude. (Example: -118.714410)'
+        form.fields['lon'].widget.attrs['placeholder'] = ''
+
+        form.fields['informant'].label = "Informant Name"
         form.fields['informant_contact'].label = "Informant Phone Number"
 
+        form.fields['description'].label = "Details"
+        form.fields['description'].help_text = "Description of callout with additional details (Remark)"
+        form.fields['description'].widget.attrs = { 'rows':4 }
+
+        form.fields['subject'].label = "DP/Subject Name"
+        form.fields['subject'].widget.attrs['placeholder'] = ''
+
+        form.fields['subject_contact'].label = "DP/Subject Phone Number)"
+        form.fields['subject_contact'].help_text = "If available"
+
+        form.fields['radio_channel'].label = "Tactical Freq"
+        form.fields['radio_channel'].help_text = "Pre-assigned frequency, if needed (Example: LHSMetro)"
+
+        form.fields['notifications_made'].label = "Notifications Made"
+        form.fields['notifications_made'].help_text = "List of other agencies already notified. Select all that apply"
+
         return form
+
 
     def form_valid(self, form):
         object = form.save(commit=False)
