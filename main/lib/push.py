@@ -26,10 +26,12 @@ def send_push_message_firebase(title, body, data=None, member_ids=None):
 
 def send_push_message_expo(title, body, data=None,
                            member_ids=None, channel=None, critical=False):
-    devices = FCMDevice.objects.filter(registration_id__startswith=EXPO_ID_PREFIX)
+    expo_devices = FCMDevice.objects.filter(
+        registration_id__startswith=EXPO_ID_PREFIX,
+        active=True)
     if member_ids is not None:
-        devices = devices.filter(user_id__in=member_ids)
-    if not devices:
+        expo_devices = expo_devices.filter(user_id__in=member_ids)
+    if not expo_devices:
         print('No Expo devices found')
         return
     session = requests.Session()
@@ -44,7 +46,7 @@ def send_push_message_expo(title, body, data=None,
     # Andoid and iOS may use different projects, so send separately.
     for device_type in ['ios', 'android']:
         for critical_choice in critical_choices:
-            devices = devices.filter(type=device_type)
+            devices = expo_devices.filter(type=device_type)
             if critical:
                 # The device_id field is now used to store if that device
                 # wants to receive a notification on the critical channel.
