@@ -1,5 +1,7 @@
+from django import forms
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.forms.models import ModelForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -12,6 +14,12 @@ from main.models import Event
 import logging
 logger = logging.getLogger(__name__)
 
+
+MIN_LAT = 32
+MAX_LAT = 42
+MIN_LON = -125
+MAX_LON = -114
+LAT_LON_STEP = 0.0000001
 
 class CalloutForm(ModelForm):
     class Meta:
@@ -28,6 +36,49 @@ class CalloutForm(ModelForm):
             'radio_channel',
             'notifications_made',
         ]
+        widgets = {
+            'lat': forms.NumberInput(
+                attrs={'min': MIN_LAT, 'max': MAX_LAT,
+                       'step': LAT_LON_STEP}),
+            'lon': forms.NumberInput(
+                attrs={'min': MIN_LON, 'max': MAX_LON,
+                       'step': LAT_LON_STEP}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['operation_type'].required = True
+
+    def clean_lat(self):
+        try:
+            lat = float(self.cleaned_data["lat"])
+        except:
+            raise ValidationError("Invalid Latitude")
+        if lat:
+            if not MIN_LAT < lat < MAX_LAT:
+                raise ValidationError(
+                    "Latitude is outside bounds ({} - {})".format(
+                        MIN_LAT, MAX_LAT))
+        return lat
+
+    def clean_lon(self):
+        try:
+            lon = float(self.cleaned_data["lon"])
+        except:
+            raise ValidationError("Invalid Longitude")
+        if lon:
+            if not MIN_LON < lon < MAX_LON:
+                raise ValidationError(
+                    "Longitude is outside bounds ({} - {})".format(
+                        MIN_LON, MAX_LON))
+        return lon
+
+    def clean(self):
+        cleaned_data = super().clean()
+        lat = cleaned_data.get("lat")
+        lon = cleaned_data.get("lon")
+        if bool(lat) ^ bool(lon):
+            raise ValidationError("Specify both latitude and longitude (or neither).")
 
 class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
     model = Event
