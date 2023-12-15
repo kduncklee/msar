@@ -5,6 +5,7 @@ from dynamic_preferences.preferences import Section
 from dynamic_preferences.registries import global_preferences_registry
 
 general = Section('general')
+template = Section('template')
 google = Section('google')
 
 ###############################################################################
@@ -28,6 +29,15 @@ class WikiUrl(types.StringPreference):
     section = general
     name = 'wiki_url'
     default = 'https://wiki.bamru.net/mediawiki/index.php?title=Special:UserLogin&returnto=Main+Page'
+
+###############################################################################
+# Template section
+
+@global_preferences_registry.register
+class TitleHeader(types.LongStringPreference):
+    section = template
+    name = 'index'
+    default = ''
 
 ###############################################################################
 # Google section
