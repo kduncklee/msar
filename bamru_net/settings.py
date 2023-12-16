@@ -285,6 +285,7 @@ elif os.environ.get('SENDINBLUE_API_KEY'):
 else:
     SMS_FILE_PATH = None
 
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 
 # Used for tests
 GOOGLE_CREDENTIALS_FILE = os.environ.get('GOOGLE_CREDENTIALS_FILE', '')

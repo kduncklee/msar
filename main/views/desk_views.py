@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.views import generic
 from rules.contrib.views import PermissionRequiredMixin
 
+from main.lib import mapping
 from main.models import Event
 
 import logging
@@ -50,11 +51,12 @@ class CalloutForm(ModelForm):
         self.fields['operation_type'].required = True
 
     def clean_lat(self):
-        try:
-            lat = float(self.cleaned_data["lat"])
-        except:
-            raise ValidationError("Invalid Latitude")
+        lat = self.cleaned_data["lat"]
         if lat:
+            try:
+                lat = float(lat)
+            except:
+                raise ValidationError("Invalid Latitude")
             if not MIN_LAT < lat < MAX_LAT:
                 raise ValidationError(
                     "Latitude is outside bounds ({} - {})".format(
@@ -62,11 +64,12 @@ class CalloutForm(ModelForm):
         return lat
 
     def clean_lon(self):
-        try:
-            lon = float(self.cleaned_data["lon"])
-        except:
-            raise ValidationError("Invalid Longitude")
+        lon = self.cleaned_data["lon"]
         if lon:
+            try:
+                lon = float(lon)
+            except:
+                raise ValidationError("Invalid Longitude")
             if not MIN_LON < lon < MAX_LON:
                 raise ValidationError(
                     "Longitude is outside bounds ({} - {})".format(
@@ -145,6 +148,14 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
             object.status = 'active'
         if object.created_by is None:
             object.created_by = self.request.user
+        if object.location_address and not object.lat:
+            address = object.location_address
+            if object.location_city:
+                address += ', {}'.format(object.location_city)
+            bounds = 'bounds={},{}|{},{}'.format(MIN_LAT,MIN_LON,MAX_LAT,MAX_LON)
+            coordinates = mapping.geocode(address, bounds)
+            if coordinates:
+                (object.lat, object.lon) = coordinates
         object.save()
         self.object = object
         return HttpResponseRedirect(self.get_success_url())
