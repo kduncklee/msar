@@ -10,7 +10,7 @@ from django.views import generic
 from rules.contrib.views import PermissionRequiredMixin
 
 from main.lib import mapping
-from main.models import Event
+from main.models import Event, EventNotificationsAvailable
 
 import logging
 logger = logging.getLogger(__name__)
@@ -134,6 +134,10 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
 
         form.fields['notifications_made'].label = "Notifications Made"
         form.fields['notifications_made'].help_text = "List of other agencies already notified. Select all that apply"
+
+        if self.request.user.status.short == 'DESK':
+            form.fields['notifications_made'].initial = (
+                EventNotificationsAvailable.objects.filter(name='LHS Desk'))
 
         return form
 
