@@ -161,6 +161,7 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
             if coordinates:
                 (object.lat, object.lon) = coordinates
         object.save()
+        form.save_m2m()
         self.object = object
         return HttpResponseRedirect(self.get_success_url())
 
