@@ -110,15 +110,18 @@ def log_post_save_handler(sender, instance, created, **kwargs):
                           .exclude(member_id=instance.member_id)
                           .values_list('member_id', flat=True))
         channel = 'log'
+        data = { "url": "view-callout", "id": instance.event.id, "type": "log"}
     else:  # announcement
+        title = "Announcement - {}".format(instance.member.username)
         member_ids = list(Member.members
                           .exclude(id=instance.member_id)
                           .values_list('id', flat=True))
         channel = 'announcement'
+        data = { "url": "chat" }
     push.send_push_message(
         title = title,
         body = body,
-        data = { "url": "view-callout", "id": instance.event.id, "type": "log"},
+        data = data,
         member_ids = member_ids,
         channel=channel)
 
