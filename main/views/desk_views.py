@@ -136,6 +136,7 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
         form.fields['notifications_made'].help_text = "List of other agencies already notified. Select all that apply"
 
         if self.request.user.status.short == 'DESK':
+            form.fields['operation_type'].initial = (Event.OPERATION_TYPES[0])  # just default to the first one if one is not selected by the desk
             form.fields['notifications_made'].initial = (
                 EventNotificationsAvailable.objects.filter(name='LHS Desk'))
 

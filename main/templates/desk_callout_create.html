@@ -22,6 +22,16 @@
 $(function () {
   // Show all items without scrolling
   $("#id_notifications_made").attr("size",$("#id_notifications_made option").length);
+
+  //if they don't enter a title, use the first part of the description
+  $("#id_description").on('change', function() {
+    if( !$("#id_title").val() ) {
+      $("#id_title").val($("#id_description").val().replace(new RegExp('\r?\n','g'), ' ').substring(0,40));
+    }
+  });
+
 });
+
+
 </script>
 {% endblock js %}
