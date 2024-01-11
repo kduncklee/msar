@@ -80,9 +80,6 @@ jobs:
             MAILGUN_API_KEY: ''
             MAILGUN_EMAIL_FROM: 'bamru_net@example.com'
             EMAIL_FROM: 'bamru_net@example.com'
-            TWILIO_SMS_FROM: ''
-            TWILIO_ACCOUNT_SID: ''
-            TWILIO_AUTH_TOKEN: ''
 
             CELERY_BROKER_URL: 'amqp://bnet:bnet_pass@localhost:5672/bnet'
 
