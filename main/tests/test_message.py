@@ -46,7 +46,7 @@ class OutgoingEmailTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         return relative
 
-    @unittest.skipUnless(settings.ANYMAIL['MAILGUN_API_KEY'], 'missing config')
+    @unittest.skipUnless(settings.ANYMAIL.get('MAILGUN_API_KEY', False), 'missing config')
     def test_send(self):
         self.distribution.message.queue()
         message_send(0)
@@ -105,7 +105,7 @@ class OutgoingSmsTestCase(TestCase):
                                        make_m2m=True)
         self.c = Client()
 
-    @unittest.skipUnless(settings.ANYMAIL['MAILGUN_API_KEY'], 'missing config')
+    @unittest.skipUnless(settings.ANYMAIL.get('MAILGUN_API_KEY', False), 'missing config')
     def test_send(self):
         # Send a generic page
         self.distribution.message.queue()
@@ -162,7 +162,7 @@ class IncommingSmsTestCase(TestCase):
         self.global_preferences = global_preferences_registry.manager()
         self.global_preferences['google__do_group'] = 'do@example.com'
 
-    @unittest.skipUnless(settings.ANYMAIL['MAILGUN_API_KEY'], 'missing config')
+    @unittest.skipUnless(settings.ANYMAIL.get('MAILGUN_API_KEY', False), 'missing config')
     def test_send(self):
         # Send a transit page
         self.distribution.message.queue()
