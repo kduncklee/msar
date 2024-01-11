@@ -62,19 +62,27 @@ jobs:
 
             DJANGO_DEBUG: True
             DJANGO_SECRET_KEY: "TEST_ONLY_INSECURE_SECRET_KEY"
+            DJANGO_HOSTNAME: 'localhost'
             DJANGO_ALLOWED_HOST: 'localhost'
             DJANGO_DB_NAME: postgres
             DJANGO_DB_USER: postgres
             DJANGO_DB_PASS: postgres
             DJANGO_DB_HOST: 127.0.0.1
 
+            EXTRA_INSTALLED_APPS: bamru_static
+
             MESSAGE_FILE_PATH: /tmp
             LOG_ROOT: /tmp
 
+            ANYMAIL_WEBHOOK_SECRET: ''
             MAILGUN_WEBHOOK_SECRET: ''
             MAILGUN_WEBHOOK_SIGNING_KEY: ''
             MAILGUN_API_KEY: ''
             MAILGUN_EMAIL_FROM: 'bamru_net@example.com'
+            EMAIL_FROM: 'bamru_net@example.com'
+            TWILIO_SMS_FROM: ''
+            TWILIO_ACCOUNT_SID: ''
+            TWILIO_AUTH_TOKEN: ''
 
             CELERY_BROKER_URL: 'amqp://bnet:bnet_pass@localhost:5672/bnet'
 
