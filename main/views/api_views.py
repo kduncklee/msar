@@ -10,10 +10,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from django_filters import rest_framework as filters
+import fcm_django.api.rest_framework
+
+
+class FCMDeviceAuthorizedViewSet(fcm_django.api.rest_framework.FCMDeviceAuthorizedViewSet):
+    ordering = ['id']
 
 
 class BaseViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.DjangoObjectPermissions,)
+    ordering = ['id']
 
 # From https://stackoverflow.com/a/40253309
 class CreateListModelMixin(object):
