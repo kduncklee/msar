@@ -62,7 +62,6 @@ jobs:
 
             DJANGO_DEBUG: True
             DJANGO_SECRET_KEY: "TEST_ONLY_INSECURE_SECRET_KEY"
-            DJANGO_HOSTNAME: 'localhost'
             DJANGO_ALLOWED_HOST: 'localhost'
             DJANGO_DB_NAME: postgres
             DJANGO_DB_USER: postgres
