@@ -4,6 +4,9 @@ from django.conf import settings
 import json
 import requests
 
+import logging
+logger = logging.getLogger(__name__)
+
 EXPO_PUSH_ROOT = 'https://exp.host/--/api/v2/push/'
 EXPO_SEND = EXPO_PUSH_ROOT + 'send'
 EXPO_ID_PREFIX = 'ExponentPushToken'
@@ -32,7 +35,7 @@ def send_push_message_expo(title, body, data=None,
     if member_ids is not None:
         expo_devices = expo_devices.filter(user_id__in=member_ids)
     if not expo_devices:
-        print('No Expo devices found')
+        logger.info('No Expo devices found')
         return
     session = requests.Session()
     session.headers.update({
@@ -71,9 +74,19 @@ def send_push_message_expo(title, body, data=None,
                     message['channelId'] = channel
             if critical_choice:  # for iOS
                 message['sound'] = {'critical':True}
-            print('{}, {}: {}'.format(device_type, critical, message['to']))
+            logger.info('{}, {}: {}'.format(device_type, critical, message['to']))
             response = session.post(EXPO_SEND, data=json.dumps(message))
-            print('{}: {}'. format(response, response.json()))
+            logger.info('{}: {}'. format(response, response.json()))
+            if not response.ok:
+                logger.error('Push error: ' + str(response.json()))
+                # Try to send seperately
+                for to in message['to']:
+                    m = message.copy()
+                    m['to'] = to
+                    r = session.post(EXPO_SEND, data=json.dumps(m))
+                    logger.info('{}, {}: {}'. format(to, r, r.json()))
+                    if not r.ok:
+                        logger.error('Single push error: ' + str(r.json()))
 
 def send_push_message(title, body, data=None,
                       member_ids=None, channel=None, critical=False):
@@ -81,10 +94,10 @@ def send_push_message(title, body, data=None,
         data = {'title': title, 'body': body}
     if len(body) > 120:
         body = body[:119] + '…'
-    print('Sending push message: {}: "{}" filtered to {}'.format(title, body, sorted(member_ids)))
+    logger.info('Sending push message: {}: "{}" filtered to {}'.format(title, body, sorted(member_ids)))
     if settings.FIREBASE_APP:
         send_push_message_firebase(title, body, data, member_ids)
     elif settings.EXPO_APP:
         send_push_message_expo(title, body, data, member_ids, channel, critical)
     else:
-        print('Skipping push message for "{}"'.format(title))
+        logger.info('Skipping push message for "{}"'.format(title))
