@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
-from main.lib import push
+from main.lib import push, webhook
 from main.models import Event, EventNotificationsAvailable, CalloutResponseOption, CalloutResponse, CalloutLog, Member, Participant
+from main.serializers import CalloutDetailSerializer
 
 @receiver(post_save, sender=CalloutResponse)
 def response_post_save_handler(sender, instance, created, **kwargs):
@@ -42,6 +43,7 @@ def callout_created_handler(instance, title="New Callout"):
         member_ids = member_ids,
         channel='callout',
         critical=True)
+    webhook.trigger_webhook('callout_created', CalloutDetailSerializer(instance).data)
 
 
 def callout_resolved_handler(instance):

@@ -6,6 +6,7 @@ from dynamic_preferences.registries import global_preferences_registry
 
 general = Section('general')
 template = Section('template')
+webhook = Section('webhook')
 google = Section('google')
 
 ###############################################################################
@@ -37,6 +38,16 @@ class WikiUrl(types.StringPreference):
 class TitleHeader(types.LongStringPreference):
     section = template
     name = 'index'
+    default = ''
+
+###############################################################################
+# Webhook section
+
+@global_preferences_registry.register
+class WebhookCalloutCreated(types.StringPreference):
+    section = webhook
+    name = 'callout_created'
+    verbose_name = 'Webhook triggered on new callout'
     default = ''
 
 ###############################################################################
