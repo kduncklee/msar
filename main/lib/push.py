@@ -90,6 +90,8 @@ def send_push_message_expo(title, body, data=None,
 
 def send_push_message(title, body, data=None,
                       member_ids=None, channel=None, critical=False):
+    if body is None:
+        body = ''
     if data is None:
         data = {'title': title, 'body': body}
     if len(body) > 120:
