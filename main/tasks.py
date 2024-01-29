@@ -156,3 +156,13 @@ def member_update_all_google_profiles():
 @tracer.start_as_current_span("member_update_all_profile_emails")
 def member_update_all_profile_emails():
     [x.profile_email_to_email_set() for x in Member.objects.all()]
+
+# @shared_task
+def archive_resolved_events(days):
+    now = timezone.now()
+    for event in Event.objects.filter(status='resolved'):
+        last_log = event.calloutlog_set.order_by('-id').first()
+        # Use >= because partial days are truncated
+        if last_log is None or (now - last_log.created_at).days >= days:
+            event.status = 'archived'
+            event.save()
