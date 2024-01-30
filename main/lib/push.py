@@ -73,7 +73,11 @@ def send_push_message_expo(title, body, data=None,
                 else:
                     message['channelId'] = channel
             if critical_choice:  # for iOS
-                message['sound'] = {'critical':True}
+                message['sound'] = {
+                    'critical': True,
+                    'name': 'default',
+                    'volume': 1,
+                }
             logger.info('{}, {}: {}'.format(device_type, critical, message['to']))
             response = session.post(EXPO_SEND, data=json.dumps(message))
             logger.info('{}: {}'. format(response, response.json()))
