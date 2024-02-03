@@ -87,3 +87,10 @@ class CalendarIdPrivate(types.StringPreference):
     name = 'calendar_id_private'
     verbose_name = 'Google calendar ID - private'
     default = ''
+
+@global_preferences_registry.register
+class FirebaseCredentials(types.LongStringPreference):
+    section = google
+    name = 'firebase_credentials'
+    verbose_name = 'JSON credentials for firebase account'
+    default = ''

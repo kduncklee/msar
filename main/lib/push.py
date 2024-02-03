@@ -1,6 +1,9 @@
-from firebase_admin.messaging import AndroidConfig, APNSConfig, Message, Notification, WebpushConfig
+import firebase_admin
+from firebase_admin import credentials, messaging
+from firebase_admin.messaging import AndroidConfig, Aps, ApsAlert, APNSConfig, Message, Notification, WebpushConfig
 from fcm_django.models import FCMDevice
 from django.conf import settings
+from dynamic_preferences.registries import global_preferences_registry
 import json
 import requests
 
@@ -11,21 +14,52 @@ EXPO_PUSH_ROOT = 'https://exp.host/--/api/v2/push/'
 EXPO_SEND = EXPO_PUSH_ROOT + 'send'
 EXPO_ID_PREFIX = 'ExponentPushToken'
 
-def send_push_message_firebase(title, body, data=None, member_ids=None):
+def send_push_message_firebase(title, body, data=None,
+                               member_ids=None, channel=None, critical=False):
+    data['title'] = title
+    data['body'] = body
+    if channel:
+        data['channel'] = channel
+    if critical:
+        data['critical'] = '1'
+    for k in data:
+        data[k] = str(data[k])
+
+    # apns
+    alert = messaging.ApsAlert(title = title, body = body)
+    if critical:
+        aps = messaging.Aps(
+            alert = alert,
+            sound = messaging.CriticalSound(
+                critical= True,
+                name= 'default',
+                volume= 1,
+            ),
+            content_available = True,
+            custom_data={'interruption-level': 'critical'},
+        )
+    else:
+        aps = messaging.Aps(
+            alert = alert,
+            sound = 'default',
+            content_available = True,
+            custom_data={'interruption-level': 'critical'},
+        )
+    payload = messaging.APNSPayload(aps)
+    print('{}, {}, {}'.format(title, body, data))
     m=Message(
-        notification = Notification(
-            title=title, body=body,
-            #image="url"
-        ),
+        # notification = messaging.Notification(title=title, body=body),
         data = data,
-        android = AndroidConfig(priority="high"),
-        apns = APNSConfig(headers={"apns-priority": "10"}),
-        webpush = WebpushConfig(headers={"Urgency": "high"}),
+        android = messaging.AndroidConfig(priority="high"),
+        apns = messaging.APNSConfig(headers={"apns-priority": "10"}, payload=payload),
+        webpush = messaging.WebpushConfig(headers={"Urgency": "high"}),
     )
-    devices = FCMDevice.objects.all()
+    devices = FCMDevice.objects.exclude(
+        registration_id__startswith=EXPO_ID_PREFIX)
     if member_ids is not None:
         devices = devices.filter(user_id__in=member_ids)
-    devices.send_message(m)
+    response = devices.send_message(m)
+    print(response)
 
 def send_push_message_expo(title, body, data=None,
                            member_ids=None, channel=None, critical=False):
@@ -92,6 +126,21 @@ def send_push_message_expo(title, body, data=None,
                     if not r.ok:
                         logger.error('Single push error: ' + str(r.json()))
 
+def load_firebase(service_account_json):
+    if firebase_admin._apps:
+        print('firebase already loaded')
+        return True
+    try:
+        service_account_info = json.loads(service_account_json)
+    except json.decoder.JSONDecodeError as e:
+        logger.info("Google credentials json parse error: " + str(e))
+        return False
+    creds = credentials.Certificate(service_account_info)
+    firebase_admin.initialize_app(creds)
+    print('firebase loaded')
+    return True
+
+
 def send_push_message(title, body, data=None,
                       member_ids=None, channel=None, critical=False):
     if body is None:
@@ -101,9 +150,16 @@ def send_push_message(title, body, data=None,
     if len(body) > 120:
         body = body[:119] + '…'
     logger.info('Sending push message: {}: "{}" filtered to {}'.format(title, body, sorted(member_ids)))
-    if settings.FIREBASE_APP:
-        send_push_message_firebase(title, body, data, member_ids)
-    elif settings.EXPO_APP:
+
+    sent = False
+    global_preferences = global_preferences_registry.manager()
+    service_account_json = global_preferences['google__firebase_credentials']
+    if service_account_json:
+        if load_firebase(service_account_json):
+            send_push_message_firebase(title, body, data, member_ids, channel, critical)
+            sent = True
+    if settings.EXPO_APP:
         send_push_message_expo(title, body, data, member_ids, channel, critical)
-    else:
+        sent = True
+    if not sent:
         logger.info('Skipping push message for "{}"'.format(title))

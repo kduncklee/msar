@@ -290,10 +290,6 @@ GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 # Used for tests
 GOOGLE_CREDENTIALS_FILE = os.environ.get('GOOGLE_CREDENTIALS_FILE', '')
 
-if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'):
-    FIREBASE_APP = initialize_app()
-else:
-    FIREBASE_APP = None
 EXPO_APP = True
 
 Q_CLUSTER = {
