@@ -46,7 +46,7 @@ def send_push_message_firebase(title, body, data=None,
             custom_data={'interruption-level': 'critical'},
         )
     payload = messaging.APNSPayload(aps)
-    print('{}, {}, {}'.format(title, body, data))
+    logger.info('{}, {}, {}'.format(title, body, data))
     m=Message(
         # notification = messaging.Notification(title=title, body=body),
         data = data,
@@ -59,7 +59,7 @@ def send_push_message_firebase(title, body, data=None,
     if member_ids is not None:
         devices = devices.filter(user_id__in=member_ids)
     response = devices.send_message(m)
-    print(response)
+    logger.info(response)
 
 def send_push_message_expo(title, body, data=None,
                            member_ids=None, channel=None, critical=False):
@@ -128,7 +128,7 @@ def send_push_message_expo(title, body, data=None,
 
 def load_firebase(service_account_json):
     if firebase_admin._apps:
-        print('firebase already loaded')
+        logger.info('firebase already loaded')
         return True
     try:
         service_account_info = json.loads(service_account_json)
@@ -137,7 +137,7 @@ def load_firebase(service_account_json):
         return False
     creds = credentials.Certificate(service_account_info)
     firebase_admin.initialize_app(creds)
-    print('firebase loaded')
+    logger.info('firebase loaded')
     return True
 
 
