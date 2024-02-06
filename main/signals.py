@@ -110,18 +110,14 @@ def log_post_save_handler(sender, instance, created, **kwargs):
     body = instance.message
     if not body:
         body = instance.update
+    member_ids = list(Member.members
+                      .exclude(id=instance.member_id)
+                      .values_list('id', flat=True))
     if instance.event:  # normal callout log
-        member_ids = list(Participant.objects
-                          .filter(period__event=instance.event)
-                          .exclude(member_id=instance.member_id)
-                          .values_list('member_id', flat=True))
         channel = 'log'
         data = { "url": "view-callout", "id": instance.event.id, "type": "log"}
     else:  # announcement
         title = "Announcement - {}".format(instance.member.username)
-        member_ids = list(Member.members
-                          .exclude(id=instance.member_id)
-                          .values_list('id', flat=True))
         channel = 'announcement'
         data = { "url": "chat" }
     push.send_push_message(
