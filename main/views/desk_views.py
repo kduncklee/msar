@@ -193,7 +193,8 @@ class DeskCalloutListView(PermissionRequiredMixin, generic.ListView):
     permission_required = 'main.desk'
 
     def get_queryset(self):
-        return (Event.objects
-                .filter(type='operation',status='active')
-                .exclude(operation_type='information')
-                .order_by('-id'))
+        status = self.request.GET.get('status', 'active')
+        results = Event.objects.exclude(operation_type='information')
+        if status != 'all':
+            results = results.filter(type='operation',status=status)
+        return results.order_by('-id')

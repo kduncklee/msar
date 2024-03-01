@@ -92,11 +92,26 @@
       <ul class="list-group">
       {% for log in event.calloutlog_set.all %}
       {% if log.type == "message" %}
-      <li class="list-group-item list-group-item-primary">{{log.member.full_name }}: {{ log.message }}</li>
+      <li class="list-group-item list-group-item-primary flex-column align-items-start ">
+        <div class="d-flex w-100 justify-content-between">
+          <p class="mb-1">{{log.member.full_name }}: {{ log.message }}</p>
+          <small>{{ log.created_at|date:"n/j H:i" }}</small>
+        </div>
+      </li>
       {% elif log.type == "system" %}
-      <li class="list-group-item list-group-item-light">{{log.update|linebreaksbr}}</li>
+      <li class="list-group-item list-group-item-light">
+        <div class="d-flex w-100 justify-content-between">
+          <p class="mb-1">{{log.update|linebreaksbr}}</p>
+          <small>{{ log.created_at|date:"n/j H:i" }}</small>
+        </div>
+      </li>
       {% elif log.type == "response" %}
-      <li class="list-group-item list-group-item-dark">{{ log.message }}</li>
+      <li class="list-group-item list-group-item-dark">
+        <div class="d-flex w-100 justify-content-between">
+          <p class="mb-1">{{ log.message }}</p>
+          <small>{{ log.created_at|date:"n/j H:i" }}</small>
+        </div>
+      </li>
       {% endif %}
       {% endfor %}
       </ul>
