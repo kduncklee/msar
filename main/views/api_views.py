@@ -309,11 +309,16 @@ class CalloutViewSet(CreateListModelMixin, BaseViewSet):
         period = Period.objects.filter(event=pk).order_by('position').first()
         if period is None:
             raise serializers.ValidationError('No matching Period found.')
-        obj, created = CalloutResponse.objects.update_or_create(
+        response = request.data['response']
+        obj, created = CalloutResponse.objects.get_or_create(
             period=period,
             member=request.user,
-            defaults={'response': request.data['response']},
+            defaults={'response': response},
         )
+        # Only update if changed - this suppresses duplication notifications
+        if not created and obj.response != response:
+            obj.response = response
+            obj.save()
         return Response(obj.pk)
 
 
