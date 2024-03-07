@@ -8,8 +8,6 @@ from main.serializers import CalloutDetailSerializer
 def response_post_save_handler(sender, instance, created, **kwargs):
     message = '{} responded {}'.format(instance.member, instance.response)
     print(message)
-    # Create the log before marking attending.
-    # This means we don't get the push message.
     CalloutLog.objects.create(
         type='response', event=instance.period.event,
         member=instance.member,
@@ -97,33 +95,3 @@ def m2m_changed_handler(sender, instance, action, pk_set, **kwargs):
         type='system', event=instance,
         member=history[0].history_user,
         message='', update=update)
-
-@receiver(post_save, sender=CalloutLog)
-def log_post_save_handler(sender, instance, created, **kwargs):
-    if instance.member:
-        username = instance.member.username
-    else:
-        username = "System"
-    title = "Callout log - {}".format(username)
-    if instance.type == 'system':
-        title = "Callout updated - {}".format(username)
-    body = instance.message
-    if not body:
-        body = instance.update
-    member_ids = list(Member.members
-                      .exclude(id=instance.member_id)
-                      .values_list('id', flat=True))
-    if instance.event:  # normal callout log
-        channel = 'log'
-        data = { "url": "view-callout", "id": instance.event.id, "type": "log"}
-    else:  # announcement
-        title = "Announcement - {}".format(instance.member.username)
-        channel = 'announcement'
-        data = { "url": "chat" }
-    push.send_push_message(
-        title = title,
-        body = body,
-        data = data,
-        member_ids = member_ids,
-        channel=channel)
-

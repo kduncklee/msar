@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
+from main.lib import push
 from main.lib.phone import format_e164
 from .base import BaseModel, BasePositionModel, Configuration
 from .event import Event, Period
@@ -486,8 +487,48 @@ class CalloutLog(BaseModel):
     type = models.CharField(choices=TYPES, max_length=255)
     event = models.ForeignKey(Event, on_delete=models.CASCADE,
                               blank=True, null=True) # null for announcement
-    member = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True)
+    member = models.ForeignKey(Member, on_delete=models.SET_NULL, blank=True, null=True)
     message = models.TextField()
     lat = models.CharField(max_length=255, blank=True, null=True)
     lon = models.CharField(max_length=255, blank=True, null=True)
     update = models.TextField(blank=True, null=True)
+
+    @property
+    def username_display(self):
+        if self.member:
+            return self.member.username
+        return "System"
+
+    def _send_push_message(self):
+        username = self.username_display
+        title = "Callout log - {}".format(username)
+        if self.type == 'system':
+            title = "Callout updated - {}".format(username)
+        body = self.message
+        if not body:
+            body = self.update
+        member_ids = list(Member.members
+                          .exclude(id=self.member_id)
+                          .values_list('id', flat=True))
+        if self.event:  # normal callout log
+            channel = 'log'
+            data = { "url": "view-callout", "id": self.event.id, "type": "log"}
+        else:  # announcement
+            title = "Announcement - {}".format(username)
+            channel = 'announcement'
+            data = { "url": "chat" }
+        push.send_push_message(
+            title = title,
+            body = body,
+            data = data,
+            member_ids = member_ids,
+            channel=channel)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Don't notify when archving or doing data cleanup of archived calls.
+        if self.event and self.event.status == 'archived':
+            logger.info('not sending push for archived: {}, {}'.format(
+                self.message, self.update))
+        else:
+            self._send_push_message()
