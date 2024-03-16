@@ -27,24 +27,11 @@ def send_push_message_firebase(title, body, data=None,
 
     # apns
     alert = messaging.ApsAlert(title = title, body = body)
-    if critical:
-        aps = messaging.Aps(
-            alert = alert,
-            sound = messaging.CriticalSound(
-                critical= True,
-                name= 'default',
-                volume= 1,
-            ),
-            content_available = True,
-            custom_data={'interruption-level': 'critical'},
-        )
-    else:
-        aps = messaging.Aps(
-            alert = alert,
-            sound = 'default',
-            content_available = True,
-            custom_data={'interruption-level': 'critical'},
-        )
+    aps = messaging.Aps(
+        alert = alert,
+        content_available = True,
+        mutable_content = True,
+    )
     payload = messaging.APNSPayload(aps)
     logger.info('{}, {}, {}'.format(title, body, data))
     m=Message(
