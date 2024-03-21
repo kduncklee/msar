@@ -14,8 +14,8 @@ EXPO_PUSH_ROOT = 'https://exp.host/--/api/v2/push/'
 EXPO_SEND = EXPO_PUSH_ROOT + 'send'
 EXPO_ID_PREFIX = 'ExponentPushToken'
 
-def send_push_message_firebase(title, body, data=None,
-                               member_ids=None, channel=None, critical=False):
+def generate_push_message_firebase(
+        title, body, data=None, channel=None, critical=False):
     data['title'] = title
     data['body'] = body
     if channel:
@@ -29,6 +29,7 @@ def send_push_message_firebase(title, body, data=None,
     alert = messaging.ApsAlert(title = title, body = body)
     aps = messaging.Aps(
         alert = alert,
+        badge = 1,
         content_available = True,
         mutable_content = True,
     )
@@ -41,6 +42,11 @@ def send_push_message_firebase(title, body, data=None,
         apns = messaging.APNSConfig(headers={"apns-priority": "10"}, payload=payload),
         webpush = messaging.WebpushConfig(headers={"Urgency": "high"}),
     )
+    return m
+
+def send_push_message_firebase(title, body, data=None,
+                               member_ids=None, channel=None, critical=False):
+    m = generate_push_message_firebase(title, body, data, channel, critical)
     devices = FCMDevice.objects.exclude(
         registration_id__startswith=EXPO_ID_PREFIX)
     if member_ids is not None:
@@ -113,10 +119,15 @@ def send_push_message_expo(title, body, data=None,
                     if not r.ok:
                         logger.error('Single push error: ' + str(r.json()))
 
-def load_firebase(service_account_json):
+def load_firebase():
     if firebase_admin._apps:
         logger.info('firebase already loaded')
         return True
+    global_preferences = global_preferences_registry.manager()
+    service_account_json = global_preferences['google__firebase_credentials']
+    if not service_account_json:
+        logger.info('no firebase credentials available')
+        return False
     try:
         service_account_info = json.loads(service_account_json)
     except json.decoder.JSONDecodeError as e:
@@ -139,12 +150,9 @@ def send_push_message(title, body, data=None,
     logger.info('Sending push message: {}: "{}" filtered to {}'.format(title, body, sorted(member_ids)))
 
     sent = False
-    global_preferences = global_preferences_registry.manager()
-    service_account_json = global_preferences['google__firebase_credentials']
-    if service_account_json:
-        if load_firebase(service_account_json):
-            send_push_message_firebase(title, body, data, member_ids, channel, critical)
-            sent = True
+    if load_firebase():
+        send_push_message_firebase(title, body, data, member_ids, channel, critical)
+        sent = True
     if settings.EXPO_APP:
         send_push_message_expo(title, body, data, member_ids, channel, critical)
         sent = True

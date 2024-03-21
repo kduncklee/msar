@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from fcm_django.models import FCMDevice
+from fcm_django.admin import DeviceAdmin as FCMDeviceAdmin
 from simple_history.admin import SimpleHistoryAdmin
 from .models import *
+from .lib import push
 
 # Register your models here.
 
@@ -166,3 +169,44 @@ class AhcLogAdmin(admin.ModelAdmin):
 class LogisticsSpreadsheetAdmin(admin.ModelAdmin):
     list_display = ('event', 'url',)
     readonly_fields = ('url', )
+
+# FCM
+admin.site.unregister(FCMDevice)
+@admin.register(FCMDevice)
+class CustomFCMDeviceAdmin(FCMDeviceAdmin):
+    actions = (
+        "enable",
+        "disable",
+        'send_test_message_callout',
+        'send_test_message_callout_resolved',
+        'send_test_message_log',
+        'send_test_message_announcement',
+    )
+
+    def _send_test_message(self, request, queryset, channel, critical=False):
+        title = "Test message"
+        body = "Sending message type of: " + channel
+        push.load_firebase()
+        m = push.generate_push_message_firebase(
+            title, body, {'title': title, 'body': body}, channel, critical)
+        response = queryset.send_message(m)
+        return self._send_deactivated_message(
+                    request, response, len(response.deactivated_registration_ids), False
+                )
+
+
+    def send_test_message_callout(self, request, queryset):
+        return self._send_test_message(request, queryset, "callout", True)
+    send_test_message_callout.short_description = "Send test message - callout"
+
+    def send_test_message_callout_resolved(self, request, queryset):
+        return self._send_test_message(request, queryset, "callout-resolved", True)
+    send_test_message_callout_resolved.short_description = "Send test message - callout-resolved"
+
+    def send_test_message_log(self, request, queryset):
+        return self._send_test_message(request, queryset, "log")
+    send_test_message_log.short_description = "Send test message - log"
+
+    def send_test_message_announcement(self, request, queryset):
+        return self._send_test_message(request, queryset, "announcement")
+    send_test_message_announcement.short_description = "Send test message - announcement"
