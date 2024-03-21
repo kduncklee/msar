@@ -377,13 +377,15 @@ class CalloutListSerializer(serializers.ModelSerializer):
     my_response = serializers.SerializerMethodField()
     responded = serializers.SerializerMethodField()
     log_count = serializers.SerializerMethodField()
+    log_last_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
         read_only_fields = ('created_at',)
         fields = ('id', 'title', 'operation_type',
                   'my_response', 'responded',
-                  'log_count', 'status', 'location',
+                  'log_count', 'log_last_id',
+                  'status', 'location',
         ) + read_only_fields
 
     def create(self, validated_data, **kwargs):
@@ -407,6 +409,12 @@ class CalloutListSerializer(serializers.ModelSerializer):
     def get_log_count(self, obj):
         return obj.calloutlog_set.all().count()
 
+    def get_log_last_id(self, obj):
+        if not self.get_log_count(obj):
+            return 0
+        return obj.calloutlog_set.order_by('-id').first().id
+
+
 class CalloutDetailSerializer(CalloutListSerializer):
     last_log_timestamp = serializers.SerializerMethodField()
     operational_periods = CalloutPeriodSerializer(
@@ -427,7 +435,7 @@ class CalloutDetailSerializer(CalloutListSerializer):
                   'informant', 'informant_contact',
                   'handling_unit', 'notifications_made',
                   'radio_channel', 'status', 'resolution',
-                  'log_count', 'last_log_timestamp',
+                  'log_count', 'log_last_id', 'last_log_timestamp',
                   'location',
                   'operational_periods',
         ) + read_only_fields
