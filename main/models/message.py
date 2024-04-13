@@ -471,6 +471,12 @@ class CalloutResponseOption(BaseModel):
     response = models.CharField(max_length=255)
     is_attending = models.BooleanField(default=True)
 
+    @staticmethod
+    def check_is_attending(response):
+        try:
+            return CalloutResponseOption.objects.get(response=response).is_attending
+        except CalloutResponseOption.DoesNotExist:
+            return False
 
 class CalloutResponse(BaseModel):
     period = models.ForeignKey(Period, on_delete=models.CASCADE)
@@ -511,12 +517,17 @@ class CalloutLog(BaseModel):
                           .exclude(id=self.member_id)
                           .values_list('id', flat=True))
         if self.event:  # normal callout log
-            channel = 'log'
+            channel = 'log'  # callout-log
             data = { "url": "view-callout", "id": self.event.id, "type": "log"}
         else:  # announcement
             title = "Announcement - {}".format(username)
             channel = 'announcement'
             data = { "url": "chat" }
+        data['logType'] = self.type
+        data['message'] = self.message
+        data['update'] = self.update
+        if self.type == 'response':
+            data['attending'] = CalloutResponseOption.check_is_attending(self.update)
         push.send_push_message(
             title = title,
             body = body,

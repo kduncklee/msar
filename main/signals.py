@@ -12,11 +12,7 @@ def response_post_save_handler(sender, instance, created, **kwargs):
         type='response', event=instance.period.event,
         member=instance.member,
         message=message, update=instance.response)
-    try:
-        attending = CalloutResponseOption.objects.get(
-            response=instance.response).is_attending
-    except CalloutResponseOption.DoesNotExist:
-        attending = False
+    attending = CalloutResponseOption.check_is_attending(instance.response)
     participant_filter = {'period': instance.period,
                           'member': instance.member}
     if attending:
