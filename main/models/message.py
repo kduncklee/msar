@@ -513,16 +513,18 @@ class CalloutLog(BaseModel):
         body = self.message
         if not body:
             body = self.update
-        member_ids = list(Member.members
-                          .exclude(id=self.member_id)
-                          .values_list('id', flat=True))
         if self.event:  # normal callout log
             channel = 'log'  # callout-log
             data = { "url": "view-callout", "id": self.event.id, "type": "log"}
+            members = Member.available
         else:  # announcement
             title = "Announcement - {}".format(username)
             channel = 'announcement'
             data = { "url": "chat" }
+            members = Member.members
+        member_ids = list(members
+                          .exclude(id=self.member_id)
+                          .values_list('id', flat=True))
         data['logType'] = self.type
         data['message'] = self.message
         data['update'] = self.update

@@ -12,13 +12,32 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from django_filters import rest_framework as filters
 import fcm_django.api.rest_framework
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class FCMDeviceAuthorizedViewSet(fcm_django.api.rest_framework.FCMDeviceAuthorizedViewSet):
     ordering = ['id']
 
 
+class StrictDjangoObjectPermissions(permissions.DjangoObjectPermissions):
+    perms_map = {
+        "GET": ["%(app_label)s.view_%(model_name)s"],
+        "OPTIONS": ["%(app_label)s.view_%(model_name)s"],
+        "HEAD": ["%(app_label)s.view_%(model_name)s"],
+        "POST": ["%(app_label)s.add_%(model_name)s"],
+        "PUT": ["%(app_label)s.change_%(model_name)s"],
+        "PATCH": ["%(app_label)s.change_%(model_name)s"],
+        "DELETE": ["%(app_label)s.delete_%(model_name)s"],
+    }
+    def get_required_object_permissions(self, method, model_cls):
+        p = super().get_required_object_permissions(method, model_cls)
+        logger.info(p)
+        return p
+
+
 class BaseViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.DjangoObjectPermissions,)
+    permission_classes = (StrictDjangoObjectPermissions,)
     ordering = ['id']
 
 # From https://stackoverflow.com/a/40253309
@@ -334,8 +353,19 @@ class CalloutLogViewSet(CreateListNestedViewSetMixin, BaseViewSet):
     def perform_create(self, serializer):
         serializer.save(member_id=self.request.user.id)
 
+class AnnouncementsPermissions(permissions.DjangoObjectPermissions):
+    perms_map = {
+        "GET": ["%(app_label)s.view_announcement"],
+        "OPTIONS": ["%(app_label)s.view_announcement"],
+        "HEAD": ["%(app_label)s.view_announcement"],
+        "POST": ["%(app_label)s.add_announcement"],
+        "PUT": ["%(app_label)s.change_announcement"],
+        "PATCH": ["%(app_label)s.change_announcement"],
+        "DELETE": ["%(app_label)s.delete_announcement"],
+    }
 
 class AnnouncementLogViewSet(CalloutLogViewSet):
+    permission_classes = (AnnouncementsPermissions,)
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(event__isnull=True)

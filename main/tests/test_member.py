@@ -6,7 +6,7 @@ from main.models import Cert, Member, MemberStatusType, Phone, Role, Unavailable
 from datetime import timedelta
 
 
-class MemberTestCase(TestCase):
+class MemberTestMixin(object):
     def setUp(self):
         self.client = Client()
         self.TM = MemberStatusType.objects.get(short="TM")
@@ -17,7 +17,28 @@ class MemberTestCase(TestCase):
                                           username='john doe',
                                           status=self.T,
         )
+        desk_type,c = MemberStatusType.objects.get_or_create(
+            short="DESK",
+            is_current=False,
+            is_available=False)
+        self.desk = Member.objects.create(first_name='Desk',
+                                          last_name='User',
+                                          username='desk',
+                                          status=desk_type,
+        )
+        # Gets paged for calls for information only.
+        available_type,c = MemberStatusType.objects.get_or_create(
+            short="available_member",
+            is_current=False,
+            is_available=True)
+        self.available_member = Member.objects.create(first_name='Available',
+                                          last_name='Member',
+                                          username='available_member',
+                                          status=available_type,
+        )
 
+
+class MemberTestCase(MemberTestMixin, TestCase):
     def test_str(self):
         jd = Member.objects.get(first_name='John')
         full_name = str(jd)
@@ -89,7 +110,7 @@ class MemberTestCase(TestCase):
         self.assertEqual(phone.display_number, '123-456-7890')
 
 
-class CertTestCase(MemberTestCase):
+class CertTestCase(MemberTestMixin, TestCase):
     def setUp(self):
         super().setUp()
         today = timezone.now().date()
@@ -147,7 +168,7 @@ class CertTestCase(MemberTestCase):
         new_num_certs = Cert.objects.filter(member=self.user).count()
         self.assertEqual(orig_num_certs + 1, new_num_certs)
 
-class UnavailableTestCase(MemberTestCase):
+class UnavailableTestCase(MemberTestMixin, TestCase):
     def setUp(self):
         super().setUp()
         today = timezone.now().date()

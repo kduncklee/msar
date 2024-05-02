@@ -11,6 +11,11 @@ def is_current_member(user):
             user.status.is_current)
 
 @rules.predicate
+def is_available_member(user):
+    return (user.is_authenticated and
+            user.status.is_available)
+
+@rules.predicate
 def is_member_self(user, member): # only for Member
     return member == user
 
@@ -44,11 +49,16 @@ def is_do_planner(user):
     return (user.is_authenticated and
             user.role_set.filter(role__in=['DOS',]).exists())
 
+@rules.predicate
+def is_desk(user):
+    return (user.is_authenticated and
+            user.status.short == 'DESK')
+
 
 # Permissions are used in views and templates. Follow the Django
 # naming scheme where possible: add_X, view_X, change_X, delete_X
 
-rules.add_perm('main', rules.is_authenticated)
+rules.add_perm('main', is_current_member | is_desk)
 
 # Access to generation of reports
 rules.add_perm('main.view_report', is_current_member)
@@ -87,7 +97,7 @@ rules.add_perm('main.delete_cert', is_owner | is_cert_editor)
 
 
 # Simple owner models
-for model in ['unavailable', 'patrol', ]:
+for model in ['unavailable', 'patrol', 'calloutresponse']:
     rules.add_perm('main.add_%s' % model, is_current_member)
     rules.add_perm('main.view_%s' % model, is_current_member)
     rules.add_perm('main.change_%s' % model, is_owner)
@@ -95,13 +105,21 @@ for model in ['unavailable', 'patrol', ]:
 
 # Models with open permission
 for model in ['event', 'period', 'participant', ]:
-    rules.add_perm('main.add_%s' % model, rules.is_authenticated)
-    rules.add_perm('main.view_%s' % model, rules.is_authenticated)
-    rules.add_perm('main.change_%s' % model, rules.is_authenticated)
+    rules.add_perm('main.add_%s' % model, is_current_member | is_desk)
+    rules.add_perm('main.view_%s' % model, is_current_member | is_desk | is_available_member)
+    rules.add_perm('main.change_%s' % model, is_current_member | is_desk)
     rules.add_perm('main.delete_%s' % model, is_current_member)
 
-for model in ['calloutresponse', 'calloutlog', ]:
-    rules.add_perm('main.add_%s' % model, rules.is_authenticated)
-    rules.add_perm('main.view_%s' % model, rules.is_authenticated)
+for model in ['calloutlog', ]:
+    rules.add_perm('main.add_%s' % model, is_current_member | is_desk)
+    rules.add_perm('main.view_%s' % model, is_current_member | is_desk | is_available_member)
 
-rules.add_perm('main.desk', rules.is_authenticated)
+for model in ['announcement', ]:
+    rules.add_perm('main.add_%s' % model, is_current_member)
+    rules.add_perm('main.view_%s' % model, is_current_member)
+
+rules.add_perm('main.desk', is_current_member | is_desk)
+
+# Read-only configurations
+rules.add_perm('main.view_memberstatustype', rules.is_authenticated)
+rules.add_perm('main.view_eventnotificationsavailable', rules.is_authenticated)

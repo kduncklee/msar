@@ -24,8 +24,7 @@ def response_post_save_handler(sender, instance, created, **kwargs):
 
 
 def available_member_ids():
-    return list(Member.objects.filter(
-        status__is_available=True).values_list('id', flat=True))
+    return list(Member.available.values_list('id', flat=True))
 
 
 def callout_created_handler(instance, title="New Callout"):

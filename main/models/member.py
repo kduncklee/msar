@@ -76,12 +76,18 @@ class CurrentMemberManager(models.Manager):
         return super().get_queryset().select_related('status').filter(
             status__is_current=True)
 
+class AvailableMemberManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('status').filter(
+            status__is_available=True)
+
 class Member(AbstractBaseUser, PermissionsMixin, BaseModel):
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'display_email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
     objects = CustomUserManager()
     members = CurrentMemberManager()
+    available = AvailableMemberManager()
     
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
