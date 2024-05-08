@@ -284,6 +284,10 @@ class EventNotificationsAvailableViewSet(CreateListModelMixin, BaseViewSet):
     queryset = EventNotificationsAvailable.objects.all()
     serializer_class = EventNotificationsAvailableSerializer
 
+class RadioChannelsAvailableViewSet(CreateListModelMixin, BaseViewSet):
+    queryset = RadioChannelsAvailable.objects.all()
+    serializer_class = RadioChannelsAvailableSerializer
+
 class CreateListNestedViewSetMixin(CreateListModelMixin, NestedViewSetMixin):
     def create(self, request, *args, **kwargs):
         data = request.data.copy()

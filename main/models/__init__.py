@@ -4,7 +4,7 @@
 
 from .base import BaseModel, BasePositionModel, Configuration
 from .member import MemberStatusType, Member, Role, Phone, Email, Address, EmergencyContact, OtherInfo, Unavailable, DoAvailable, Cert
-from .event import EventNotificationsAvailable, Event, Period, Participant, Patrol
+from .event import EventNotificationsAvailable, Event, Period, Participant, Patrol, RadioChannelsAvailable
 from .message import RsvpTemplate, Message, Distribution, OutboundSms, InboundSms, OutboundEmail, CalloutResponseOption, CalloutResponse, CalloutLog
 from .file import DataFile, MemberPhoto
 from .documents import Aar, AhcLog, DocumentTemplate, DoLog, LogisticsSpreadsheet

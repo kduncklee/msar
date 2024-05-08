@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from main.lib import push, webhook
-from main.models import Event, EventNotificationsAvailable, CalloutResponseOption, CalloutResponse, CalloutLog, Member, Participant
+from main.models import Event, EventNotificationsAvailable, CalloutResponseOption, CalloutResponse, CalloutLog, Member, Participant, RadioChannelsAvailable
 from main.serializers import CalloutDetailSerializer
 
 @receiver(post_save, sender=CalloutResponse)
@@ -74,8 +74,18 @@ def event_post_save_handler(sender, instance, created, **kwargs):
         member=history[0].history_user,
         message='', update=update)
 
-@receiver(m2m_changed, sender=Event.notifications_made.through)
-def m2m_changed_handler(sender, instance, action, pk_set, **kwargs):
+
+def notifications_made_m2m_update_string(verb, pk_set):
+    items = EventNotificationsAvailable.objects.filter(pk__in=pk_set)
+    names = [i.name for i in items]
+    return 'Callout updated.\nNotifications {}: {}'.format(verb, names)
+
+def additional_radio_channels_m2m_update_string(verb, pk_set):
+    items = RadioChannelsAvailable.objects.filter(pk__in=pk_set)
+    names = [i.name for i in items]
+    return 'Callout updated.\nRadio channels {}: {}'.format(verb, names)
+
+def event_m2m_changed_handler(instance, action, pk_set, update_string_function):
     if action == 'post_add':
         verb = 'added'
     elif action == 'post_remove':
@@ -83,10 +93,16 @@ def m2m_changed_handler(sender, instance, action, pk_set, **kwargs):
     else:
         return
     history = instance.history.all()[:2]
-    notifications = EventNotificationsAvailable.objects.filter(pk__in=pk_set)
-    names = [n.name for n in notifications]
-    update = 'Callout updated.\nNotifications {}: {}'.format(verb, names)
+    update = update_string_function(verb, pk_set)
     CalloutLog.objects.create(
         type='system', event=instance,
         member=history[0].history_user,
         message='', update=update)
+
+@receiver(m2m_changed, sender=Event.notifications_made.through)
+def notifications_made_m2m_changed_handler(sender, instance, action, pk_set, **kwargs):
+    event_m2m_changed_handler(instance, action, pk_set, notifications_made_m2m_update_string)
+
+@receiver(m2m_changed, sender=Event.additional_radio_channels.through)
+def additional_radio_channels_m2m_changed_handler(sender, instance, action, pk_set, **kwargs):
+    event_m2m_changed_handler(instance, action, pk_set, additional_radio_channels_m2m_update_string)

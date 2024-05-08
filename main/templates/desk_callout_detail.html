@@ -67,8 +67,16 @@
     {% endif %}
 
 
-    {% if event.radio_channel != None %}<p><strong>Tactical Channel:</strong>{{ event.radio_channel }}</p>{% endif %}
-    {% if event.handling_unit != None %}<p><strong>Tag / Handling Unit:</strong>{{ event.handling_unit }}</p>{% endif %}
+    {% if event.radio_channel != None %}
+    <p><strong>Tactical Channel:</strong> {{ event.radio_channel }}</p>
+    {% endif %}
+    {% if event.additional_radio_channels.all %}
+    <p><strong>Additional channels:</strong>
+      {{ event.additional_radio_channels.all|join:", " }}</p>
+    {% endif %}
+    {% if event.handling_unit != None %}
+    <p><strong>Tag / Handling Unit:</strong>{{ event.handling_unit }}</p>
+    {% endif %}
 
     <p>
       <strong>Start:</strong>

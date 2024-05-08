@@ -22,6 +22,15 @@ class EventNotificationsAvailable(BasePositionModel):
         return self.name
 
 
+class RadioChannelsAvailable(BasePositionModel):
+    name = models.CharField(max_length=255)
+    is_primary = models.BooleanField(default=True)
+    is_additional = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Event(BaseModel):
     TYPES = (
         ('meeting', 'Meeting'),
@@ -61,7 +70,8 @@ class Event(BaseModel):
     subject_contact = models.CharField(max_length=255, blank=True, null=True)
     informant = models.CharField(max_length=255, blank=True, null=True)
     informant_contact = models.CharField(max_length=255, blank=True, null=True)
-    radio_channel = models.CharField(max_length=255, blank=True, null=True)
+    radio_channel = models.CharField(max_length=255, blank=True, null=True)  # primary
+    additional_radio_channels = models.ManyToManyField(RadioChannelsAvailable, blank=True)
     handling_unit = models.CharField(max_length=255, blank=True, null=True)
     notifications_made = models.ManyToManyField(EventNotificationsAvailable, blank=True)
     status = models.CharField(

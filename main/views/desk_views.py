@@ -10,7 +10,7 @@ from django.views import generic
 from rules.contrib.views import PermissionRequiredMixin
 
 from main.lib import mapping
-from main.models import Event, EventNotificationsAvailable
+from main.models import Event, EventNotificationsAvailable, RadioChannelsAvailable
 
 import logging
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class CalloutForm(ModelForm):
             'informant', 'informant_contact',
             'description',
             'subject', 'subject_contact',
-            'radio_channel',
+            'radio_channel', 'additional_radio_channels',
             'notifications_made',
         ]
         widgets = {
@@ -44,6 +44,10 @@ class CalloutForm(ModelForm):
             'lon': forms.NumberInput(
                 attrs={'min': MIN_LON, 'max': MAX_LON,
                        'step': LAT_LON_STEP}),
+            'radio_channel': forms.Select(
+                choices=[(None,'')] + [(r.name, r.name) for r in
+                         RadioChannelsAvailable.objects.filter(is_primary=True)]
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -131,6 +135,10 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
 
         form.fields['radio_channel'].label = "Tactical Freq"
         form.fields['radio_channel'].help_text = "Pre-assigned frequency, if needed (Example: LHSMetro)"
+
+        form.fields['additional_radio_channels'].label = "Additional Radio Channels"
+        form.fields['additional_radio_channels'].help_text = "Additional frequencies used (like Fire)"
+        form.fields['additional_radio_channels'].queryset = RadioChannelsAvailable.objects.filter(is_additional=True)
 
         form.fields['notifications_made'].label = "Notifications Made"
         form.fields['notifications_made'].help_text = "List of other agencies already notified. Select all that apply"

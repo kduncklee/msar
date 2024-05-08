@@ -372,6 +372,11 @@ class EventNotificationsAvailableSerializer(serializers.ModelSerializer):
         model = EventNotificationsAvailable
         fields = ('id', 'position', 'name')
 
+class RadioChannelsAvailableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RadioChannelsAvailable
+        fields = ('id', 'position', 'name', 'is_primary', 'is_additional')
+
 class CalloutListSerializer(serializers.ModelSerializer):
     location = LocationSerializer(source='*', required=False)
     my_response = serializers.SerializerMethodField()
@@ -424,6 +429,11 @@ class CalloutDetailSerializer(CalloutListSerializer):
         queryset=EventNotificationsAvailable.objects.all(),
         slug_field='name',
         required=False)
+    additional_radio_channels = serializers.SlugRelatedField(
+        many=True,
+        queryset=RadioChannelsAvailable.objects.all(),
+        slug_field='name',
+        required=False)
     created_by = CalloutMemberSerializer(required=False, read_only=True)
 
     class Meta:
@@ -434,7 +444,8 @@ class CalloutDetailSerializer(CalloutListSerializer):
                   'subject', 'subject_contact',
                   'informant', 'informant_contact',
                   'handling_unit', 'notifications_made',
-                  'radio_channel', 'status', 'resolution',
+                  'radio_channel', 'additional_radio_channels',
+                  'status', 'resolution',
                   'log_count', 'log_last_id', 'last_log_timestamp',
                   'location',
                   'operational_periods',

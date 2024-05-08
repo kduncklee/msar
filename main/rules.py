@@ -123,3 +123,4 @@ rules.add_perm('main.desk', is_current_member | is_desk)
 # Read-only configurations
 rules.add_perm('main.view_memberstatustype', rules.is_authenticated)
 rules.add_perm('main.view_eventnotificationsavailable', rules.is_authenticated)
+rules.add_perm('main.view_radiochannelsavailable', rules.is_authenticated)

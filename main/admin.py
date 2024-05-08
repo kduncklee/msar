@@ -91,6 +91,11 @@ class EventNotificationsAvailableAdmin(admin.ModelAdmin):
     list_display = ('name',)
 
 
+@admin.register(RadioChannelsAvailable)
+class RadioChannelsAvailableeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_primary', 'is_additional')
+
+
 @admin.register(CalloutResponseOption)
 class CalloutResponseOptionAdmin(admin.ModelAdmin):
     list_display = ('response', 'is_attending')
