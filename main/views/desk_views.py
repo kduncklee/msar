@@ -44,10 +44,7 @@ class CalloutForm(ModelForm):
             'lon': forms.NumberInput(
                 attrs={'min': MIN_LON, 'max': MAX_LON,
                        'step': LAT_LON_STEP}),
-            'radio_channel': forms.Select(
-                choices=[(None,'')] + [(r.name, r.name) for r in
-                         RadioChannelsAvailable.objects.filter(is_primary=True)]
-            ),
+            'radio_channel': forms.Select(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -135,6 +132,8 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
 
         form.fields['radio_channel'].label = "Tactical Freq"
         form.fields['radio_channel'].help_text = "Pre-assigned frequency, if needed (Example: LHSMetro)"
+        form.fields['radio_channel'].widget.choices=[(None,'')] + [(r.name, r.name) for r in
+                         RadioChannelsAvailable.objects.filter(is_primary=True)]
 
         form.fields['additional_radio_channels'].label = "Additional Radio Channels"
         form.fields['additional_radio_channels'].help_text = "Additional frequencies used (like Fire)"
