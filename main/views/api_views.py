@@ -282,10 +282,12 @@ class MemberPhotoViewSet(BaseViewSet):
 # App
 class EventNotificationsAvailableViewSet(CreateListModelMixin, BaseViewSet):
     queryset = EventNotificationsAvailable.objects.all()
+    ordering = ['position']
     serializer_class = EventNotificationsAvailableSerializer
 
 class RadioChannelsAvailableViewSet(CreateListModelMixin, BaseViewSet):
     queryset = RadioChannelsAvailable.objects.all()
+    ordering = ['position']
     serializer_class = RadioChannelsAvailableSerializer
 
 class CreateListNestedViewSetMixin(CreateListModelMixin, NestedViewSetMixin):
