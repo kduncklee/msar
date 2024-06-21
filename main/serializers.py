@@ -404,7 +404,9 @@ class CalloutListSerializer(serializers.ModelSerializer):
         try:
             response = CalloutResponse.objects.get(
                 period=period, member=self.context['request'].user)
-        except ObjectDoesNotExist:
+        except KeyError:  # Not being used in a request context - no user available.
+            return None
+        except ObjectDoesNotExist:  # No response for this user.
             return None
         return response.response
 

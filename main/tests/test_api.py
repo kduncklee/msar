@@ -185,6 +185,21 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(kwargs['member_ids'], [self.other_user.id, self.available_member.id])
         mock_send_push_message.reset_mock()
 
+        # Callout reopened
+        response = self.client.patch('{}callouts/{}/'.format(self.uri, cid),
+                                    {'status': 'active', 'resolution': ''})
+        self.assertEqual(response.status_code, 200)
+        mock_send_push_message.assert_called()
+        kwargs = mock_send_push_message.call_args_list[0].kwargs
+        self.assertEqual(kwargs['title'], 'Callout reactivated')
+        self.assertEqual(kwargs['body'], TITLE)
+        self.assertCountEqual(kwargs['member_ids'], AVAILABLE_IDS)
+        kwargs = mock_send_push_message.call_args_list[1].kwargs
+        self.assertEqual(kwargs['title'], 'Callout updated - john doe')
+        self.assertRegexpMatches(kwargs['body'], 'status')
+        self.assertEqual(kwargs['member_ids'], [self.other_user.id, self.available_member.id])
+        mock_send_push_message.reset_mock()
+
         # Desk creates a new call
         self.client.force_login(self.desk)
         response = self.client.post(
