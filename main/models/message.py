@@ -484,6 +484,9 @@ class CalloutResponse(BaseModel):
     response = models.CharField(max_length=255)
     history = HistoricalRecords()
 
+    class Meta:
+        unique_together = ("period", "member")
+
 
 class CalloutLog(BaseModel):
     TYPES = (
