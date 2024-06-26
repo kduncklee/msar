@@ -279,12 +279,22 @@ class InboundSmsSerializer(serializers.ModelSerializer):
         fields = read_only_fields
 
 
-class MemberPhotoSerializer(WriteOnceMixin, CreatePermModelSerializer):
+class BaseFileSerializer(WriteOnceMixin, CreatePermModelSerializer):
+    def create(self, validated_data):
+        validated_data['size'] = validated_data['file'].size
+        validated_data['name'] = validated_data['file'].name
+        if '.' in validated_data['file'].name:
+            validated_data['extension'] = validated_data['file'].name.split('.')[-1]
+        validated_data['content_type'] = validated_data['file'].content_type
+        return super().create(validated_data)
+
+
+class MemberPhotoSerializer(BaseFileSerializer):
     class Meta:
         model = MemberPhoto
         read_only_fields = ('name', 'extension', 'size', 'content_type')
         write_once_fields = ('member', 'file')
-        fields = ('id', 'url', 'file', 'member', 'position', 'created_at', 'updated_at', 'name', 'extension', 'size', 'content_type', 'original_url', 'medium_url', 'thumbnail_url', 'gallery_thumb_url')
+        fields = ('id', 'file', 'member', 'position', 'created_at', 'updated_at', 'name', 'extension', 'size', 'content_type', 'original_url', 'medium_url', 'thumbnail_url', 'gallery_thumb_url')
 
     file = serializers.ImageField(write_only=True)
 
@@ -301,14 +311,6 @@ class MemberPhotoSerializer(WriteOnceMixin, CreatePermModelSerializer):
     def get_photo_url(self, obj, format):
         url = reverse('member_photo_download', args=[obj.id, format])
         return self.context['request'].build_absolute_uri(url)
-
-    def create(self, validated_data):
-        validated_data['size'] = validated_data['file'].size
-        validated_data['name'] = validated_data['file'].name
-        if '.' in validated_data['file'].name:
-            validated_data['extension'] = validated_data['file'].name.split('.')[-1]
-        validated_data['content_type'] = validated_data['file'].content_type
-        return super().create(validated_data)
 
 
 # For App
@@ -422,10 +424,21 @@ class CalloutListSerializer(serializers.ModelSerializer):
         return obj.calloutlog_set.order_by('-id').first().id
 
 
+class DataFileSerializer(BaseFileSerializer):
+    class Meta:
+        model = DataFile
+        read_only_fields = ('name', 'extension', 'size', 'content_type')
+        write_once_fields = ('member', 'file')
+        fields = ('id', 'file', 'member', 'event', 'created_at', 'name', 'extension', 'size', 'content_type')
+    member = CalloutMemberSerializer(required=False)
+
+
 class CalloutDetailSerializer(CalloutListSerializer):
     last_log_timestamp = serializers.SerializerMethodField()
     operational_periods = CalloutPeriodSerializer(
         source='period_set', many=True, read_only=True)
+    files = DataFileSerializer(
+        source='datafile_set', many=True, read_only=True)
     notifications_made = serializers.SlugRelatedField(
         many=True,
         queryset=EventNotificationsAvailable.objects.all(),
@@ -451,6 +464,7 @@ class CalloutDetailSerializer(CalloutListSerializer):
                   'log_count', 'log_last_id', 'last_log_timestamp',
                   'location',
                   'operational_periods',
+                  'files',
         ) + read_only_fields
 
     def get_last_log_timestamp(self, obj):

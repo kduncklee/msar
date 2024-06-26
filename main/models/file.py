@@ -4,6 +4,7 @@ from imagekit.models import ImageSpecField
 from imagekit.processors import SmartResize, ResizeToFill, ResizeToFit
 
 from .base import BaseModel, BasePositionMixin
+from .event import Event
 from .member import Member
 
 from datetime import date, datetime, timedelta
@@ -36,6 +37,7 @@ class BaseFileModel(BaseModel):
 
 class DataFile(BaseFileModel):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
     caption = models.CharField(max_length=255, blank=True, null=True)
     download_count = models.IntegerField(default=0)
     published = models.BooleanField(default=False)

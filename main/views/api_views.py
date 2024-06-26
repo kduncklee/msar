@@ -4,7 +4,8 @@ from main.serializers import *
 
 from django import forms
 from django.db.models import Prefetch
-from rest_framework import exceptions, generics, mixins, parsers, permissions, response, serializers, views, viewsets
+from django.http import FileResponse
+from rest_framework import exceptions, generics, mixins, parsers, permissions, response, serializers, views, viewsets, renderers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -279,6 +280,22 @@ class MemberPhotoViewSet(BaseViewSet):
     filterset_fields = ('member', )
     search_fields = ('member__username', )
 
+class DataFileViewSet(BaseViewSet):
+    queryset = DataFile.objects.all()
+    serializer_class = DataFileSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(member_id=self.request.user.id)
+
+    @action(methods=['get'], detail=True)
+    def download(self, *args, **kwargs):
+        instance = self.get_object()
+        file_handle = instance.file.open()
+        response = FileResponse(file_handle, content_type=instance.content_type)
+        response['Content-Length'] = instance.size
+        response['Content-Disposition'] = 'attachment; filename="%s"' % instance.name
+        return response
+
 # App
 class EventNotificationsAvailableViewSet(CreateListModelMixin, BaseViewSet):
     queryset = EventNotificationsAvailable.objects.all()
@@ -316,7 +333,10 @@ class CalloutViewSet(CreateListModelMixin, BaseViewSet):
         'period_set',
         'period_set__calloutresponse_set',
         'period_set__calloutresponse_set__member',
-        'calloutlog_set')
+        'calloutlog_set',
+        'datafile_set',
+        'datafile_set__member',
+    )
     filterset_class = CalloutFilter
 
     def get_serializer_class(self):
