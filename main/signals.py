@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from main.lib import push, webhook
-from main.models import Event, EventNotificationsAvailable, CalloutResponseOption, CalloutResponse, CalloutLog, Member, Participant, RadioChannelsAvailable
+from main.models import DataFile, Event, EventNotificationsAvailable, CalloutResponseOption, CalloutResponse, CalloutLog, Member, Participant, RadioChannelsAvailable
 from main.serializers import CalloutDetailSerializer
 
 @receiver(post_save, sender=CalloutResponse)
@@ -106,3 +106,12 @@ def notifications_made_m2m_changed_handler(sender, instance, action, pk_set, **k
 @receiver(m2m_changed, sender=Event.additional_radio_channels.through)
 def additional_radio_channels_m2m_changed_handler(sender, instance, action, pk_set, **kwargs):
     event_m2m_changed_handler(instance, action, pk_set, additional_radio_channels_m2m_update_string)
+
+@receiver(post_save, sender=DataFile)
+def datafile_post_save_handler(sender, instance, created, **kwargs):
+    if created and instance.event and (instance.event.type == 'operation'):
+        update = 'File added: ' + instance.name
+        CalloutLog.objects.create(
+            type='system', event=instance.event,
+            member=instance.member,
+            message='', update=update)
