@@ -39,6 +39,7 @@ router.register(r'availability', views.ApiUnavailableViewSet, basename='member-u
 router.register(r'do', views.DoViewSet, basename='do')
 router.register(r'member_availability', views.MemberUnavailableViewSet, basename='member-availability')
 router.register(r'photos', views.MemberPhotoViewSet)
+router.register(r'files', views.DataFileViewSet)
 router.register(r'messages', views.MessageViewSet)
 router.register(r'inbound_sms', views.InboundSmsViewSet)
 router.register(r'event_notifications', views.EventNotificationsAvailableViewSet, basename='event_notification')
