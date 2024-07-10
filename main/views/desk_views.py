@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django import forms
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -6,6 +7,7 @@ from django.forms.models import ModelForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html, format_html_join
 from django.views import generic
 from rules.contrib.views import PermissionRequiredMixin
 
@@ -84,6 +86,17 @@ class CalloutForm(ModelForm):
         if bool(lat) ^ bool(lon):
             raise ValidationError("Specify both latitude and longitude (or neither).")
 
+class ConfirmCalloutForm(CalloutForm):
+    force = forms.BooleanField(required=True, initial=False)
+
+    def clean_force(self):
+        data = self.cleaned_data['force']
+        if data:
+            return data
+        else:
+            raise forms.ValidationError('Please confirm that this is not a duplicate callout.')
+
+
 class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
     model = Event
     form_class = CalloutForm
@@ -142,6 +155,14 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
         form.fields['notifications_made'].label = "Notifications Made"
         form.fields['notifications_made'].help_text = "List of other agencies already notified. Select all that apply"
 
+        if 'force' in form.fields:
+            form.fields['force'].label = 'This is a new callout and not a duplicate of a recent call below.'
+            form.fields['force'].help_text = format_html(
+                '<dl>{}</dl',
+                format_html_join('\n','<dt>{}</dt><dd>{}</dd>',
+                                 ((c.title, c.description) for c in self.recent))
+            )
+
         if self.request.user.status.short == 'DESK':
             form.fields['operation_type'].initial = (Event.OPERATION_TYPES[0])  # just default to the first one if one is not selected by the desk
             form.fields['notifications_made'].initial = (
@@ -177,7 +198,10 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
         return reverse('desk_callout_detail', args=[self.object.id])
 
 class DeskCalloutCreateView(DeskCalloutBaseView, generic.edit.CreateView):
-    pass
+    def get_form_class(self):
+        qs = Event.objects.filter(type='operation', status='active')
+        self.recent = qs.filter(created_at__gte=timezone.now() - timedelta(minutes=15))
+        return ConfirmCalloutForm if self.recent else CalloutForm
 
 class DeskCalloutUpdateView(DeskCalloutBaseView, generic.edit.UpdateView):
     pass
