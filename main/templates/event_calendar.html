@@ -202,8 +202,8 @@ var eventSources = [
   {
     id: 'patrols',
     url: '{% url 'api:patrol-list' %}',
-    startParam: 'date_after',
-    endParam: 'date_before',
+    startParam: 'date_iso_after',
+    endParam: 'date_iso_before',
     success: function(response) {
       return response.results.map(
         function(x) {
@@ -241,6 +241,7 @@ var eventSources = [
 document.addEventListener('DOMContentLoaded', function() {
   var calendarEl = document.getElementById('calendar');
   var calendar = new FullCalendar.Calendar(calendarEl, {
+    height: 'auto',
     initialView: 'dayGridMonth',
     eventSources: eventSources,
     dateClick: HandleDateClick,

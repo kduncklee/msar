@@ -184,10 +184,17 @@ class ParticipantViewSet(CreateListModelMixin, BaseViewSet):
     serializer_class = PeriodParticipantSerializer
 
 
+class PatrolFilter(filters.FilterSet):
+    date = filters.DateFromToRangeFilter()
+    date_iso = filters.IsoDateTimeFromToRangeFilter(field_name='date')
+    class Meta:
+        model = Patrol
+        fields = ('member', 'date')
+
 class PatrolViewSet(CreateListModelMixin, BaseViewSet):
     queryset = Patrol.objects.all()
     serializer_class = PatrolSerializer
-    filterset_fields = ('member', 'date')
+    filterset_class = PatrolFilter
 
     def perform_create(self, serializer):
         serializer.save(member_id=self.request.user.id)
