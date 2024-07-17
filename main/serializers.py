@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.db.models import Count
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import exceptions, serializers
 from rest_framework.validators import UniqueTogetherValidator
 from collections import defaultdict
@@ -466,6 +467,11 @@ class CalloutDetailSerializer(CalloutListSerializer):
                   'operational_periods',
                   'files',
         ) + read_only_fields
+
+    def create(self, validated_data):
+        if 'start_at' not in validated_data:
+            validated_data['start_at'] = timezone.now()
+        return super().create(validated_data)
 
     def get_last_log_timestamp(self, obj):
         latest = obj.calloutlog_set.filter(event=obj).order_by('-id').first()
