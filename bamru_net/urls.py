@@ -164,6 +164,7 @@ urlpatterns = [
     path('reports/roster/BAMRU-roster.vcf', views.ReportRosterVcfView.as_view()),
     path('reports/roster/BAMRU-<str:roster_type>', views.ReportRosterView.as_view()),
     path('reports/activity-member/<int:pk>/', views.ReportEventMemberView.as_view(), name='report_activity_member'),
+    path('reports/activity-member/me/', views.ReportEventMemberViewSelf.as_view(), name='report_activity_member'),
     path('reports/activity-<str:activity_type>/', views.ReportEventView.as_view(), name='report_activity'),
     path('reports/event/errors/', views.ReportEventErrorsView.as_view(), name='report_event_errors'),
     path('reports/cert/expire/', views.CertExpireView.as_view(), name='report_cert_expire'),

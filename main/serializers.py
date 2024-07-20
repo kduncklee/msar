@@ -54,8 +54,8 @@ class MemberSerializer(serializers.HyperlinkedModelSerializer):
         model = Member
         read_only_fields = ('username', 'full_name', 'status', 'status_order',
                             'roles', 'role_order',
-                            'display_email', 'display_phone', 'short_name',
-                            'is_unavailable', 'is_staff', 'is_superuser',)
+                            'display_email', 'display_phone', 'short_name', 'last_name',
+                            'is_current', 'is_unavailable', 'is_staff', 'is_superuser',)
         fields = ('id', 'dl', 'ham', 'v9', 'is_current_do',
                   'last_login',) + read_only_fields
 

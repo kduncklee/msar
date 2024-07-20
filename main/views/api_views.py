@@ -69,6 +69,7 @@ class MemberViewSet(BaseViewSet):
                 'email_set',
                 'phone_set',
                 'role_set',
+                'status',
             )
 
 

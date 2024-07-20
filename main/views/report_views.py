@@ -154,14 +154,18 @@ class ReportEventMemberView(PermissionRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        member = self.get_object()
         events = {}
         for t in Event.TYPES:
             events[t] = (Participant.objects
-                         .filter(member__id=self.kwargs['pk'], period__event__type=t[0])
+                         .filter(member=member, period__event__type=t[0])
                          .order_by('period__event__start_at', 'period__position'))
         context['events'] = events
         return context
 
+class ReportEventMemberViewSelf(ReportEventMemberView):
+    def get_object(self):
+        return self.request.user
 
 class CertExpireView(BaseReportView):
     permission_required = 'main.view_report'

@@ -234,6 +234,10 @@ class Member(AbstractBaseUser, PermissionsMixin, BaseModel):
                     year=plan_year, quarter__lt=plan_quarter).count())
 
     @property
+    def is_current(self):
+        return self.status.is_current
+
+    @property
     def is_unavailable(self):
         if getattr(self, '_unavailable_now', None) is not None:
             return self._unavailable_now > 0
