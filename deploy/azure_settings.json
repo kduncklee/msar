@@ -60,6 +60,11 @@
     "value": "bamru_net.settings"
   },
   {
+    "name": "EXTRA_INSTALLED_APPS",
+    "slotSetting": false,
+    "value": "bamru_static"
+  },
+  {
     "name": "JAVASCRIPT_DSN",
     "slotSetting": false,
     "value": "X_SECRET_X"

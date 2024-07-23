@@ -21,12 +21,12 @@ POSTGRES_PASSWORD=$3
 POSTGRES_RO_PASSWORD=$4
 
 LOCATION=westus
-SERVICEPLAN_SKU=P1V3
+SERVICEPLAN_SKU=P0V3
 POSTGRES_TIER=Burstable
-POSTGRES_SKU=Standard_B2s
-POSTGRES_VERSION=14
+POSTGRES_SKU=Standard_B1ms
+POSTGRES_VERSION=16
 
-RUNTIME="python:3.9"
+RUNTIME="python:3.11"
 
 : "${SETUP_AZ:=false}"
 : "${SETUP_CERT:=false}"
@@ -140,14 +140,13 @@ if $SETUP_CONFIG; then
       -e "s/X_POSTGRES_DB/$POSTGRES_DB/g" \
       -e "s/X_POSTGRES_PASS/$POSTGRES_PASSWORD/g " \
       -e "s/X_POSTGRES_USER/${POSTGRES_USER}/g" \
+      -e "s/X_ALLOWED_HOST/${HOSTNAME},${WEBAPP_NAME}.azurewebsites.net,${SLOT_HOSTNAME},${WEBAPP_NAME}-${SLOT}.azurewebsites.net/g" \
       azure_settings.json > processed-common.json
 
   sed -e "s/X_HOSTNAME/${SLOT_HOSTNAME}/g" \
-      -e "s/X_ALLOWED_HOST/${SLOT_HOSTNAME},${WEBAPP_NAME}-${SLOT}.azurewebsites.net/g" \
       processed-common.json > processed-${SLOT}.json
 
   sed -e "s/X_HOSTNAME/${HOSTNAME}/g" \
-      -e "s/X_ALLOWED_HOST/${HOSTNAME},${WEBAPP_NAME}.azurewebsites.net/g" \
       processed-common.json > processed.json
 
   az webapp config appsettings set --resource-group $RESOURCEGROUP_NAME -n ${WEBAPP_NAME} --slot ${SLOT} --settings @processed-${SLOT}.json @azure_secrets.json

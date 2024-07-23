@@ -2,10 +2,10 @@
 
 ## Preliminary steps
 
-* Install `az` (e.g. `brew install azure-cli` on macos)
+* Install `az` (e.g. `pip install azure-cli`)
 * `az login`
 * `az extension add --name db-up`
-  * I did not have success getting this to install on macos. After trying for a while I gave up and spun up a linux VM where it installed smoothly.
+  * On MacOS the system's Python 3.9 is not compatible. You may need to install your own.
 * Install `pqsl` (e.g. `postgresql-client` package)
 
 ## Prepare data

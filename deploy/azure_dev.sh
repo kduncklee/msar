@@ -66,8 +66,11 @@ EOF
     PGPASSWORD="$SLOT_POSTGRES_PASSWORD" psql $CONNECT_NEW ${POSTGRES_DB} <<EOF
     CREATE DATABASE ${SLOT_POSTGRES_DB};
 EOF
+    PGPASSWORD="$POSTGRES_PASSWORD" psql $CONNECT_ADMIN ${SLOT_POSTGRES_DB} <<EOF
+    GRANT ALL ON SCHEMA public TO ${SLOT_POSTGRES_USER};
+EOF
     PGPASSWORD="$POSTGRES_PASSWORD" pg_dump --exclude-table-data="dynamic_preferences_globalpreferencemodel" --format=custom --file=db.dump $CONNECT_ADMIN --dbname=$POSTGRES_DB
-    PGPASSWORD="$SLOT_POSTGRES_PASSWORD" pg_restore $CONNECT_NEW -d ${SLOT_POSTGRES_DB} --no-owner --no-privileges --schema="public" db.dump
+    PGPASSWORD="$SLOT_POSTGRES_PASSWORD" pg_restore $CONNECT_NEW -d ${SLOT_POSTGRES_DB} --no-acl --no-owner --no-privileges --schema="public" db.dump
 fi
 
 
