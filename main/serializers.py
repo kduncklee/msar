@@ -43,6 +43,11 @@ class CreatePermModelSerializer(serializers.ModelSerializer):
         return super(CreatePermModelSerializer, self).create(validated_data)
 
 
+class PhoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Phone
+        fields = ('id', 'member', 'position', 'type', 'number', 'display_number')
+
 class MemberStatusTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = MemberStatusType
@@ -50,6 +55,7 @@ class MemberStatusTypeSerializer(serializers.HyperlinkedModelSerializer):
 
 class MemberSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.StringRelatedField()
+    phone_set = PhoneSerializer(many=True, read_only=True)
     class Meta:
         model = Member
         read_only_fields = ('username', 'full_name', 'status', 'status_order',
@@ -57,7 +63,7 @@ class MemberSerializer(serializers.HyperlinkedModelSerializer):
                             'display_email', 'display_phone', 'short_name', 'last_name',
                             'is_current', 'is_unavailable', 'is_staff', 'is_superuser',)
         fields = ('id', 'dl', 'ham', 'v9', 'is_current_do',
-                  'last_login',) + read_only_fields
+                  'last_login', 'phone_set', ) + read_only_fields
 
 
 class ParticipantMemberSerializer(serializers.HyperlinkedModelSerializer):
