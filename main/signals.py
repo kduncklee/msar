@@ -39,10 +39,10 @@ def callout_created_handler(instance, title="New Callout"):
     webhook.trigger_webhook('callout_created', CalloutDetailSerializer(instance).data)
 
 
-def callout_resolved_handler(instance):
+def callout_resolved_handler(instance, title="Callout Resolved"):
     member_ids = available_member_ids()
     push.send_push_message(
-        title = "Callout Resolved",
+        title = title,
         body = instance.resolution,
         data = { "url": "view-callout", "id": instance.id, "type": "log"},
         member_ids = member_ids,
@@ -54,7 +54,10 @@ def event_post_save_handler(sender, instance, created, **kwargs):
     if instance.type != 'operation':
         return
     if created:
-        callout_created_handler(instance)
+        if instance.status == 'active':
+            callout_created_handler(instance)
+        else:
+            callout_resolved_handler(instance, 'New Resolved Callout - NO RESPONSE NEEDED')
         return
     update = 'Callout updated.'
     history = instance.history.all()[:2]
