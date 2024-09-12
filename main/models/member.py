@@ -68,6 +68,7 @@ class CustomUserManager(BaseUserManager):
         )
         user.is_admin = True
         user.is_staff = True
+        user.is_superuser = True
         user.status = MemberStatusType.objects.filter(is_current=True).first()
         user.save(using=self._db)
         return user
