@@ -56,26 +56,30 @@ class MemberStatusTypeSerializer(serializers.HyperlinkedModelSerializer):
 class MemberSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.StringRelatedField()
     phone_set = PhoneSerializer(many=True, read_only=True)
+    emp = serializers.CharField(source='v9',
+        required=False, allow_blank=True, allow_null=True)
     class Meta:
         model = Member
         read_only_fields = ('username', 'full_name', 'status', 'status_order',
                             'roles', 'role_order',
                             'display_email', 'display_phone', 'short_name', 'last_name',
                             'is_current', 'is_unavailable', 'is_staff', 'is_superuser',)
-        fields = ('id', 'dl', 'ham', 'v9', 'is_current_do',
+        fields = ('id', 'dl', 'ham', 'emp', 'is_current_do',
                   'last_login', 'phone_set', ) + read_only_fields
 
 
 class ParticipantMemberSerializer(serializers.HyperlinkedModelSerializer):
     # does not include is_unavailable since we cannot prefetch it
     status = serializers.StringRelatedField()
+    emp = serializers.CharField(source='v9',
+        required=False, allow_blank=True, allow_null=True)
     class Meta:
         model = Member
         read_only_fields = ('username', 'full_name', 'status', 'status_order',
                             'roles', 'role_order',
                             'display_email', 'display_phone', 'short_name',
                             'is_staff', 'is_superuser',)
-        fields = ('id', 'dl', 'ham', 'v9', 'is_current_do',
+        fields = ('id', 'dl', 'ham', 'emp', 'is_current_do',
                   'last_login',) + read_only_fields
 
 

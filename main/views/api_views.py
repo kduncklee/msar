@@ -128,9 +128,17 @@ class EventFilter(filters.FilterSet):
     finish_at = filters.DateFromToRangeFilter()
     start_at_iso = filters.IsoDateTimeFromToRangeFilter(field_name='start_at')
     finish_at_iso = filters.IsoDateTimeFromToRangeFilter(field_name='finish_at')
+    is_operation = filters.BooleanFilter(label='Is Operation', method='filter_is_operation')
     class Meta:
         model = Event
         fields = ('type', 'start_at', 'finish_at', 'published',)
+
+    def filter_is_operation(self, queryset, name, value):
+        if value:
+            return queryset.filter(type='operation')
+        else:
+            return queryset.exclude(type='operation')
+
 
 
 class EventViewSet(BaseViewSet):
