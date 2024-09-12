@@ -44,6 +44,21 @@ def generate_push_message_firebase(
     )
     return m
 
+def send_push_message_devices_firebase(devices, message):
+    response = devices.send_message(message)
+    logger.info(response)
+    logger.info('{} success, {} failure'.format(
+        response.response.success_count, response.response.failure_count))
+    ids = []
+    for r in response.response.responses:
+        if r.success:
+            ids.append(r.message_id)
+        else:
+            logger.error(r.exception)
+    logger.info(ids)
+    return response
+
+
 def send_push_message_firebase(title, body, data=None,
                                member_ids=None, channel=None, critical=False):
     m = generate_push_message_firebase(title, body, data, channel, critical)
@@ -51,8 +66,7 @@ def send_push_message_firebase(title, body, data=None,
         registration_id__startswith=EXPO_ID_PREFIX)
     if member_ids is not None:
         devices = devices.filter(user_id__in=member_ids)
-    response = devices.send_message(m)
-    logger.info(response)
+    send_push_message_devices_firebase(devices, m)
 
 def send_push_message_expo(title, body, data=None,
                            member_ids=None, channel=None, critical=False):

@@ -194,7 +194,7 @@ class CustomFCMDeviceAdmin(FCMDeviceAdmin):
         push.load_firebase()
         m = push.generate_push_message_firebase(
             title, body, {'title': title, 'body': body}, channel, critical)
-        response = queryset.send_message(m)
+        response = push.send_push_message_devices_firebase(queryset, m)
         return self._send_deactivated_message(
                     request, response, len(response.deactivated_registration_ids), False
                 )
