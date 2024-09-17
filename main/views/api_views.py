@@ -150,6 +150,7 @@ class EventViewSet(BaseViewSet):
                 "period_set",
                 "period_set__participant_set",
                 "period_set__participant_set__member",
+                "period_set__participant_set__member__status",
                 "period_set__participant_set__member__phone_set",
                 "period_set__participant_set__member__email_set",
                 "period_set__participant_set__member__role_set",
@@ -181,6 +182,7 @@ class PeriodViewSet(BaseViewSet):
     queryset = Period.objects.prefetch_related(
         "participant_set",
         "participant_set__member",
+        "participant_set__member__status",
         "participant_set__member__phone_set",
         "participant_set__member__email_set",
         "participant_set__member__role_set",
@@ -201,7 +203,13 @@ class PatrolFilter(filters.FilterSet):
         fields = ('member', 'date')
 
 class PatrolViewSet(CreateListModelMixin, BaseViewSet):
-    queryset = Patrol.objects.all()
+    queryset = Patrol.objects.all().prefetch_related(
+        'member',
+        'member__status',
+        'member__phone_set',
+        'member__email_set',
+        'member__role_set',
+    )
     serializer_class = PatrolSerializer
     filterset_class = PatrolFilter
 
@@ -349,9 +357,11 @@ class CalloutViewSet(CreateListModelMixin, BaseViewSet):
         'period_set',
         'period_set__calloutresponse_set',
         'period_set__calloutresponse_set__member',
+        'period_set__calloutresponse_set__member__phone_set',
         'calloutlog_set',
         'datafile_set',
         'datafile_set__member',
+        'datafile_set__member__phone_set',
     )
     filterset_class = CalloutFilter
 

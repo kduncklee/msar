@@ -37,6 +37,7 @@ class MemberStatusType(BasePositionModel):
     is_do_eligible = models.BooleanField(default=True) # can serve DO shifts
     is_display = models.BooleanField(default=True) # show on site
     is_default = models.BooleanField(default=False) # Create new users with this type
+    color = models.CharField(max_length=15, default=None, blank=True, null=True) # display color in calendar
 
     def __str__(self):
         return self.short

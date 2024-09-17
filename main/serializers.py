@@ -58,14 +58,18 @@ class MemberSerializer(serializers.HyperlinkedModelSerializer):
     phone_set = PhoneSerializer(many=True, read_only=True)
     emp = serializers.CharField(source='v9',
         required=False, allow_blank=True, allow_null=True)
+    color = serializers.SerializerMethodField()
     class Meta:
         model = Member
-        read_only_fields = ('username', 'full_name', 'status', 'status_order',
+        read_only_fields = ('username', 'full_name', 'status', 'status_order', 'color',
                             'roles', 'role_order',
                             'display_email', 'display_phone', 'short_name', 'last_name',
                             'is_current', 'is_unavailable', 'is_staff', 'is_superuser',)
         fields = ('id', 'dl', 'ham', 'emp', 'is_current_do',
                   'last_login', 'phone_set', ) + read_only_fields
+
+    def get_color(self, member):
+        return member.status.color
 
 
 class ParticipantMemberSerializer(serializers.HyperlinkedModelSerializer):
