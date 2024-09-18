@@ -83,7 +83,7 @@ class PeriodAdmin(SimpleHistoryAdmin):
 
 @admin.register(Patrol)
 class PatrolAdmin(SimpleHistoryAdmin):
-    list_display = ('member', 'date',)
+    list_display = ('member', 'start_at',)
 
 
 @admin.register(EventNotificationsAvailable)

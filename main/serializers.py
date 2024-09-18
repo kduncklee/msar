@@ -227,9 +227,14 @@ class PeriodParticipantSerializer(serializers.ModelSerializer):
 
 class PatrolSerializer(serializers.ModelSerializer):
     member = ParticipantMemberSerializer(required=False)
+    color = serializers.SerializerMethodField()
     class Meta:
         model = Patrol
-        fields = ('id', 'member', 'date', 'description',)
+        fields = ('id', 'member', 'start_at', 'finish_at', 'description', 'color',)
+
+    def get_color(self, patrol):
+        return patrol.member.status.color
+
 
 
 class DistributionSerializer(serializers.ModelSerializer):

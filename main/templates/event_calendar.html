@@ -62,7 +62,7 @@ function RefetchPatrols() {
 
 function AddPatrol(date, description) {
   var data = {
-    date: date,
+    start_at: date,
     description: description
   };
   $.ajax({
@@ -202,8 +202,8 @@ var eventSources = [
   {
     id: 'patrols',
     url: '{% url 'api:patrol-list' %}',
-    startParam: 'date_iso_after',
-    endParam: 'date_iso_before',
+    startParam: 'start_at_iso_after',
+    endParam: 'start_at_iso_before',
     success: function(response) {
       return response.results.map(
         function(x) {
@@ -222,8 +222,8 @@ var eventSources = [
             backgroundColor: backgroundColor,
             borderColor: 'black',
             textColor: textColor,
-            start: x.date,
-            end: x.date,
+            start: x.start_at,
+            end: x.finish_at,
             allDay: true,
             extendedProps: {
               patrol: true,

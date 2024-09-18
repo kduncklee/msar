@@ -196,11 +196,11 @@ class ParticipantViewSet(CreateListModelMixin, BaseViewSet):
 
 
 class PatrolFilter(filters.FilterSet):
-    date = filters.DateFromToRangeFilter()
-    date_iso = filters.IsoDateTimeFromToRangeFilter(field_name='date')
+    start_at = filters.DateFromToRangeFilter()
+    start_at_iso = filters.IsoDateTimeFromToRangeFilter(field_name='start_at')
     class Meta:
         model = Patrol
-        fields = ('member', 'date')
+        fields = ('member', 'start_at')
 
 class PatrolViewSet(CreateListModelMixin, BaseViewSet):
     queryset = Patrol.objects.all().prefetch_related(

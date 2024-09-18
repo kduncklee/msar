@@ -204,10 +204,14 @@ class Participant(BaseModel):
 
 class Patrol(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    date = models.DateField()
+    start_at = models.DateTimeField()
+    finish_at = models.DateTimeField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['member', 'date'], name='unique_patrol')
+            models.UniqueConstraint(fields=['member', 'start_at'], name='unique_patrol')
         ]
+
+    def __str__(self):
+        return '{} - {}'.format(self.start_at.strftime('%Y-%m-%d'), self.member.username)
