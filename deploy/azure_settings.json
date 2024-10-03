@@ -75,21 +75,6 @@
     "value": "/home/LogFiles"
   },
   {
-    "name": "MAILGUN_API_KEY",
-    "slotSetting": false,
-    "value": "X_SECRET_X"
-  },
-  {
-    "name": "MAILGUN_EMAIL_FROM",
-    "slotSetting": false,
-    "value": "X_SECRET_X"
-  },
-  {
-    "name": "MAILGUN_WEBHOOK_SECRET",
-    "slotSetting": false,
-    "value": "X_SECRET_X"
-  },
-  {
     "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
     "slotSetting": false,
     "value": "X_SECRET_X"

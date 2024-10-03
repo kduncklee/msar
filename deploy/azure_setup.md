@@ -10,7 +10,7 @@
 
 ## Prepare data
 Ensure the following are present in the `deploy` directory:
-* `db.sql.gz`
+* `db.sql.gz` (if doing DB import)
 * `azure_secrets.json`
 
 ## Initial setup
@@ -21,7 +21,9 @@ Do this however you like best.
 ## Set up everything other than the certificate:
 `SETUP_AZ=true SETUP_STORE=true SETUP_DB=true SETUP_CONFIG=true ./azure_setup.sh bamrunet bamru.info 'XXX_MAIN_DATABASE_PASSWORD_XXX' 'XXX_READONLY_DATABASE_PASSWORD_XXX'`
 
-## Upload storage data
+You may want to run each SETUP_x step sequentially to verify.
+
+## Upload storage data (optional - if migrating from another platform)
 Log into prod, enter the vagrant vm, become bamru user
 
 `cd ~bamru/system`

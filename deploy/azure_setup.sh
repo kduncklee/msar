@@ -32,6 +32,7 @@ RUNTIME="python:3.11"
 : "${SETUP_CERT:=false}"
 : "${SETUP_CERT_SLOT:=false}"
 : "${SETUP_STORE:=false}"
+: "${SETUP_DB_IMPORT:=false}"
 : "${SETUP_DB:=false}"
 : "${SETUP_CONFIG:=false}"
 
@@ -111,12 +112,14 @@ if $SETUP_STORE; then
 fi
 
 PSQL="psql --host=${POSTGRES_NAME}.postgres.database.azure.com --port=5432 --username=${POSTGRES_USER} --dbname=$POSTGRES_DB"
-if $SETUP_DB; then
+if $SETUP_DB_IMPORT; then
   # mv gunzip db-2021-05-24--18-17.sql.gz db.sql.gz
   gunzip -k db.sql.gz
   sed -i s/bnet_db/${POSTGRES_USER}/ db.sql
   PGSSLMODE=require PGPASSWORD="$POSTGRES_PASSWORD" $PSQL < db.sql
   rm db.sql
+fi
+if $SETUP_DB; then
   PGSSLMODE=require PGPASSWORD="$POSTGRES_PASSWORD" $PSQL <<EOF
     CREATE ROLE ${POSTGRES_RO_USER} WITH LOGIN ENCRYPTED PASSWORD '${POSTGRES_RO_PASSWORD}';
     GRANT CONNECT ON DATABASE ${POSTGRES_DB} TO ${POSTGRES_RO_USER};
