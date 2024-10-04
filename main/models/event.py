@@ -3,16 +3,13 @@
 #
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
-from datetime import datetime, timezone, timedelta
 from simple_history.models import HistoricalRecords
 
 from .base import BaseModel, BasePositionModel
 from .documents import Aar, AhcLog, LogisticsSpreadsheet
 from .member import Member, Role
-
-def utc_to_local(utc_dt):
-    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
 
 class EventNotificationsAvailable(BasePositionModel):
@@ -92,6 +89,14 @@ class Event(BaseModel):
     history = HistoricalRecords(m2m_fields=[notifications_made])
 
     def save(self, *args, **kwargs):
+        if not self.start_at:
+            self.start_at = timezone.now()
+        if not self.finish_at:
+            self.finish_at = self.start_at
+        if self.type == 'operation' and self.status == 'resolved':
+            old = Event.objects.get(pk=self.pk)
+            if old.status == 'active':
+                self.finish_at = timezone.now()
         super(Event, self).save(*args, **kwargs)
         self.add_period(True)
 

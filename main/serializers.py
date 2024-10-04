@@ -236,7 +236,6 @@ class PatrolSerializer(serializers.ModelSerializer):
         return patrol.member.status.color
 
 
-
 class DistributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Distribution
@@ -486,11 +485,6 @@ class CalloutDetailSerializer(CalloutListSerializer):
                   'operational_periods',
                   'files',
         ) + read_only_fields
-
-    def create(self, validated_data):
-        if 'start_at' not in validated_data:
-            validated_data['start_at'] = timezone.now()
-        return super().create(validated_data)
 
     def get_last_log_timestamp(self, obj):
         latest = obj.calloutlog_set.filter(event=obj).order_by('-id').first()
