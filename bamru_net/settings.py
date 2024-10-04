@@ -352,6 +352,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        'opentelemetry': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
         # Default runserver request logging
         'django.server': DEFAULT_LOGGING['loggers']['django.server'],
         # Project logging

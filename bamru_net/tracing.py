@@ -6,6 +6,7 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+import os
 
 def _django_response_hook(span, request, response):
     if span and span.is_recording():
@@ -15,6 +16,8 @@ def _django_response_hook(span, request, response):
             span.set_attribute("username", str(request.user))
 
 def setup_tracing():
+    if not os.environ.get('OTEL_ENABLED'):
+        return
     provider = TracerProvider()
     processor = BatchSpanProcessor(OTLPSpanExporter())
     provider.add_span_processor(processor)
