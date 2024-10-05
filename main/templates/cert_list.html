@@ -9,27 +9,25 @@
 <strong class="d-none d-md-block" id="subhdr"></strong>
 {% endblock subheader %}
 
-{% block dtable-row %}
-        <td>{{ member.full_name }}</td>
-        <td>{{ member.id }}</td>
-        <td>{{ member.status }}</td>
-        <td>{{ member.status_order }}</td>
-        {% for c in member.certs %}
-        <td bgcolor="{{c.cert.color | default:"white" }}">
-          {% if c.count %}
-          {{ c.cert }}
-          {% if c.count > 1 %}*{% endif %}
-          {% endif %}
-        </td>
-        {% endfor %}
-{% endblock dtable-row %}
-
-{% block dtable-class %}display table-bordered compact nowrap{% endblock %}
-
+  {% block dtable %}
+  <table id="dTbl" class="display table-bordered compact nowrap" style="width:100%">
+  </table>
+  {% endblock dtable %}
 
 {# --- Table definition --- #}
 
 {% block table_options %}
+ajax: {url:'/api/member_certs/',
+dataSrc: function(json) {
+        var rows = [];
+        for (var i = 0; i < json.results.length; i++)
+        {
+            var data = processMemberJson(json.results[i]);
+            rows[i] = data;
+        }
+        return rows;
+}
+},
 order: [[ 2, 'asc' ], [0, 'asc']],
 
 columns: [
@@ -53,24 +51,35 @@ columns: [
       }
     },
     { data: 'status_order', visible: false, className: 'noVis', },
-    { data: 'medical', title: 'Medical', responsivePriority: 1,
-      render: RenderColor,
-    },
-    { data: 'cpr', title: 'CPR', responsivePriority: 1,
-      render: RenderColor,
-    },
-    { data: 'ham', title: 'Ham', render: RenderColor, responsivePriority: 4, },
-    { data: 'tracking', title: 'Tracking', render: RenderColor, responsivePriority: 4, },
-    { data: 'avalanche', title: 'Avalanche', render: RenderColor, responsivePriority: 4, },
-    { data: 'rigging', title: 'Rigging', render: RenderColor, responsivePriority: 4, },
-    { data: 'ics', title: 'ICS', render: RenderColor, responsivePriority: 4, },
-    { data: 'overhead', title: 'Overhead', render: RenderColor, responsivePriority: 3, },
-    { data: 'driver', title: 'SO Driver', render: RenderColor, responsivePriority: 2, },
-    { data: 'background', title: 'SO Bkg', render: RenderColor, responsivePriority: 2, },
+
+{% for t in cert_types %}
+{ data: '{{ t.name }}',
+  title: '{% if t.display_name %}{{ t.display_name }}{% else %}{{ t.name }}{% endif %}',
+  responsivePriority: {{ t.responsive_priority }},
+  render: RenderColor,
+},
+{% endfor %}
 ],
 language: { emptyTable: 'No members selected' },
 
 {% endblock table_options %}
+
+{% block table_buttons_first %}
+{
+    autoClose: true,
+    text: '<i class="fa fa-expand"></i> Show all columns',
+    action: function ( e, dt, node, config ) {
+var state = !this.active();
+$( "th" ).toggleClass('all', state);
+this.active(state);
+
+var table = $('#dTbl').DataTable();
+table.responsive.rebuild();
+table.responsive.recalc();
+    },
+},
+
+{% endblock table_buttons_first %}
 
 {% block initComplete %}
 SetMemberFilter (table);
@@ -90,6 +99,7 @@ function RenderColor (data, type, row, meta) {
           return data;
       }
 
+
 function UpdateSubheaderBasedOnSettings(table) {
     // Extract currently selected status based on filter
     var showStatus = [];
@@ -108,9 +118,28 @@ function UpdateSubheaderBasedOnSettings(table) {
 }
 
 {% endblock functions %}
-{% block row_functions %}
-const apiUrlMemberCert = '{% url 'api:member-cert-list' %}?status__short=';
 
+
+{% block AddRemoveRows %}
+function processMemberJson(data) {
+{% for cert_type in cert_types %}
+            data.{{ cert_type.name }} = '';{% endfor %}
+
+            var certs = data.certs;
+            for (var j = 0; j < certs.length; j++)
+            {
+                if (certs[j].length != 0) {
+                    var cert = certs[j];
+                    data[cert.type] =
+                        '<div bgcolor="' + cert.color + '">' +
+                        cert.description + (certs[j].length > 1 ? '*' : '') +
+                        '</div>';
+                }
+            }
+    return data;
+}
+
+const apiUrlMemberCert = '/api/member_certs/?status=';
 function AddRows(table, values) {
     //
     // Add rows based on status
@@ -119,31 +148,7 @@ function AddRows(table, values) {
     $.getJSON(url, null, function( json ) {
         for (var i = 0; i < json.results.length; i++)
         {
-            var data = json.results[i];
-            //FX: this is a hack, the API should return complete certs
-            //Find a better way to not embedded cert names
-            data.medical = '';
-            data.cpr = '';
-            data.ham = '';
-            data.tracking = '';
-            data.avalanche = '';
-            data.rigging = '';
-            data.ics = '';
-            data.overhead = '';
-            data.driver = '';
-            data.background = '';
-
-            var certs = data.certs;
-            for (var j = 0; j < certs.length; j++)
-            {
-                if (certs[j].length != 0) {
-                    var cert = certs[j][0];  // Always use the first if multiple certs
-                    data[cert.type] =
-                        '<div bgcolor="' + cert.color + '">' +
-                        cert.description + (certs[j].length > 1 ? '*' : '') +
-                        '</div>';
-                }
-            }
+            var data = processMemberJson(json.results[i]);
 
             table.row.add(data).invalidate();
         }
@@ -161,5 +166,4 @@ function RemoveRows(table, values) {
 
         table.draw().columns.adjust().responsive.recalc();//FX
 }
-
-{% endblock row_functions %}
+{% endblock %}

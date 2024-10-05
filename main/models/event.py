@@ -83,7 +83,7 @@ class Event(BaseModel):
     created_by = models.ForeignKey(Member, null=True, on_delete=models.SET_NULL)
     published = models.BooleanField(
         default=False,
-        help_text='Published events are viewable by the public.')
+        help_text='Published events are viewable on the public and private calendar.')
     gcal_id = models.CharField(max_length=255, blank=True, null=True)
     gcal_id_private = models.CharField(max_length=255, blank=True, null=True)
     history = HistoricalRecords(m2m_fields=[notifications_made])

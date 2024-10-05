@@ -36,6 +36,7 @@ class StrictDjangoObjectPermissions(permissions.DjangoObjectPermissions):
         logger.info(p)
         return p
 
+import jinja2
 
 class BaseViewSet(viewsets.ModelViewSet):
     permission_classes = (StrictDjangoObjectPermissions,)
@@ -110,18 +111,50 @@ class MemberUnavailableViewSet(BaseViewSet):
 
 
 class CertViewSet(BaseViewSet):
-    queryset = Cert.objects.all()
+    queryset = Cert.objects.select_related('subtype__type')
     serializer_class = CertSerializer
-    filterset_fields = ('member__status__short', 'type', )
+    filterset_fields = ('member', 'member__status__short', 'subtype__type', 'subtype')
     search_fields = ('member__username',  )
 
 
+def is_valid(cert_list):
+    for cert in cert_list:
+        if not cert.is_expired:
+            return True
+    return False
+
+def is_valid_subtype_in(value, cert_list):
+    for cert in cert_list:
+        if cert.subtype.name == value and not cert.is_expired:
+            return True
+    return False
+
 class MemberCertViewSet(BaseViewSet):
-    queryset = Member.objects.prefetch_related('cert_set')
+    queryset = Member.objects.prefetch_related('cert_set__subtype__type', 'role_set')
     serializer_class = MemberCertSerializer
-    filterset_fields = ('status__short', )
     search_fields = ('username',  )
 
+    def get_queryset(self):
+        filter_kwargs = {}
+        if hasattr(self.request, 'query_params'):
+            if self.request.query_params.get('status'):
+                filter_kwargs['status__short'] = self.request.query_params['status']
+        return Member.objects.filter(**filter_kwargs).prefetch_related(
+            'cert_set__subtype__type',
+            'role_set',
+            'status',
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        env = jinja2.Environment(autoescape=False)
+        env.tests["valid"] = is_valid
+        env.tests["valid_subtype_in"] = is_valid_subtype_in
+        context.update({
+            'env': env,
+            'display_cert_types': CertType.display_cert_types,
+        })
+        return context
 
 class EventFilter(filters.FilterSet):
     start_at = filters.DateFromToRangeFilter()
