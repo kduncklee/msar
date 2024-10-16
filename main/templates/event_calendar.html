@@ -27,6 +27,20 @@
       </div>
       <div class="modal-body">
         <form>
+          <div class="form-check">
+            <input type="checkbox" name="all_day" class="form-check-input" id="patrolModalAllDay" checked="">
+            <label class="form-check-label" for="patrolModalAllDay">All day</label>
+          </div>
+          <div id="patrolModalTimes">
+            <div class="form-group">
+              <label for="patrolModalStartAt" class="col-form-label">Start:</label>
+              <input type="time" name="start_at" value="00:00" pattern="[0-9]{2}:[0-9]{2}" oninvalid="this.setCustomValidity('Enter valid time 24H: hh:mm')" class="form-control" placeholder="Start*" title="" id="patrolModalStartAt" style="" />
+            </div>
+            <div class="form-group">
+              <label for="patrolModalFinishAt" class="col-form-label">Finish:</label>
+              <input type="time" name="finish_at" value="00:00" pattern="[0-9]{2}:[0-9]{2}" oninvalid="this.setCustomValidity('Enter valid time 24H: hh:mm')" class="form-control" placeholder="Finish*" title="" id="patrolModalFinishAt" style="" />
+            </div>
+          </div>
           <div class="form-group">
             <label for="patrolModalComment" class="col-form-label">Comment:</label>
             <textarea class="form-control" id="patrolModalComment"></textarea>
@@ -60,11 +74,7 @@ function RefetchPatrols() {
   patrolSource.refetch();
 }
 
-function AddPatrol(date, description) {
-  var data = {
-    start_at: date,
-    description: description
-  };
+function AddPatrol(data) {
   $.ajax({
     method: 'POST',
     contentType: 'application/x-www-form-urlencoded',
@@ -83,10 +93,7 @@ function AddPatrol(date, description) {
   })
 }
 
-function UpdatePatrol(id, description) {
-  var data = {
-    description: description
-  };
+function UpdatePatrol(id, data) {
   $.ajax({
     method: 'PATCH',
     contentType: 'application/x-www-form-urlencoded',
@@ -123,23 +130,50 @@ function DeletePatrol(id) {
   })
 }
 
+function getDateString(date) {
+    return date?.toISOString()?.substring(0,10);
+}
+
+function getTimeString(date) {
+    var options = { hour12: false, hour: "2-digit", minute: "2-digit" };
+    return date?.toLocaleTimeString([], options);
+}
+
+function PatrolModalUpdateTimeVisible() {
+    if ($("#patrolModalAllDay")[0].checked) {
+        $("#patrolModalTimes").hide();
+    } else {
+        $("#patrolModalTimes").show();
+    }
+}
+
 function ShowCreatePatrolModal(date) {
   $("#patrolModalLabel").text("Create Patrol - " + date);
   $("#patrolModalDate").val(date);
+  $("#patrolModalAllDay")[0].checked= true;
+  $("#patrolModalStartAt").val(date);
+  $("#patrolModalStartAt").val(null);
   $("#patrolModalComment").val("");
   $("#patrolModalDelete").hide();
   $("#patrolModalUpdate").hide();
   $("#patrolModalCreate").show();
+  PatrolModalUpdateTimeVisible();
   $("#patrolModal").modal('show');
 }
 
 function ShowEditPatrolModal(event) {
+  var date = getDateString(event.start);
   $("#patrolModalLabel").text("Edit Patrol - " + event.start.toLocaleDateString());
   $("#patrolModalId").val(event.id);
+  $("#patrolModalDate").val(date);
+  $("#patrolModalAllDay")[0].checked = event.allDay;
+  $("#patrolModalStartAt").val(getTimeString(event.start));
+  $("#patrolModalFinishAt").val(getTimeString(event.end));
   $("#patrolModalComment").val(event.extendedProps.description);
   $("#patrolModalDelete").show();
   $("#patrolModalUpdate").show();
   $("#patrolModalCreate").hide();
+  PatrolModalUpdateTimeVisible();
   $("#patrolModal").modal('show');
 }
 
@@ -171,6 +205,8 @@ function HandleEventClick(info) {
       console.log('clicked on ' + info.event);
       ShowEditPatrolModal(info.event);
     }
+  } else {
+    window.location.href = "{% url 'event_list' %}" + info.event.id + "/";
   }
 }
 
@@ -216,15 +252,19 @@ var eventSources = [
             textColor = 'black';
             backgroundColor = '#ffffff';
           }
+          var titleText = x.member.username;
+            if (x.finish_at) {
+              titleText += ": " + getTimeString(new Date(x.start_at)) + " - " + getTimeString(new Date(x.finish_at));
+          }
           return {
             id: x.id,
-            title: x.member.username,
+            title: titleText,
             backgroundColor: backgroundColor,
             borderColor: 'black',
             textColor: textColor,
             start: x.start_at,
             end: x.finish_at,
-            allDay: true,
+            allDay: !x.finish_at,
             extendedProps: {
               patrol: true,
               member: x.member,
@@ -268,9 +308,26 @@ document.addEventListener('DOMContentLoaded', function() {
   calendar.render();
 
 
+function PatrolFromForm() {
+    var date = $("#patrolModalDate").val();
+    var data = {
+        start_at: date,
+        finish_at: null,
+        description: $("#patrolModalComment").val()
+    };
+    if (!$("#patrolModalAllDay")[0].checked) {
+        data.start_at = date + "T" + $("#patrolModalStartAt").val();
+        data.finish_at = date + "T" + $("#patrolModalFinishAt").val();
+    }
+    return data;
+}
+
+  $("#patrolModalAllDay").on("change", function(event) {
+      PatrolModalUpdateTimeVisible();
+  });
   $("#patrolModalCreate").on("click", function() {
     $("#patrolModal").modal('hide');
-    AddPatrol($("#patrolModalDate").val(), $("#patrolModalComment").val());
+    AddPatrol(PatrolFromForm());
   });
   $("#patrolModalDelete").on("click", function() {
     $("#patrolModal").modal('hide');
@@ -278,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   $("#patrolModalUpdate").on("click", function() {
     $("#patrolModal").modal('hide');
-    UpdatePatrol($("#patrolModalId").val(), $("#patrolModalComment").val());
+    UpdatePatrol($("#patrolModalId").val(), PatrolFromForm());
   });
 
   window.calendar = calendar;
