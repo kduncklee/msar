@@ -219,7 +219,9 @@ var eventSources = [
     startParam: 'finish_at_iso_after',
     endParam: 'start_at_iso_before',
     success: function(response) {
-      return response.results.map(
+      return response.results.filter(
+          (x) => (x.type != 'operation')
+      ).map(
         function(x) {
           return {
             id: x.id,
@@ -243,15 +245,8 @@ var eventSources = [
     success: function(response) {
       return response.results.map(
         function(x) {
-          var textColor = 'white';
-          var backgroundColor = '#3b59a0';
-          if (x.member.status == 'CVS') {
-            textColor = 'black';
-            backgroundColor = '#aad4ff';
-          } else if ((x.member.status == 'CV') || (x.member.status[0] == 'P')) {
-            textColor = 'black';
-            backgroundColor = '#ffffff';
-          }
+          var textColor = 'black';
+          var backgroundColor = x.color ?? 'white';
           var titleText = x.member.username;
             if (x.finish_at) {
               titleText += ": " + getTimeString(new Date(x.start_at)) + " - " + getTimeString(new Date(x.finish_at));
