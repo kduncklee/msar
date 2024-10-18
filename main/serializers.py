@@ -55,7 +55,9 @@ class PhoneSerializer(serializers.ModelSerializer):
 class MemberStatusTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = MemberStatusType
-        fields = ('id', 'short', 'long', 'position')
+        fields = ('id', 'short', 'long', 'position', 'color',
+                  'is_current', 'is_available', 'is_display',
+                  )
 
 class MemberSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.StringRelatedField()
@@ -68,7 +70,8 @@ class MemberSerializer(serializers.HyperlinkedModelSerializer):
         read_only_fields = ('username', 'full_name', 'status', 'status_order', 'color',
                             'roles', 'role_order',
                             'display_email', 'display_phone', 'short_name', 'last_name',
-                            'is_current', 'is_unavailable', 'is_staff', 'is_superuser',)
+                            'is_current',  'is_available', 'is_display',
+                            'is_unavailable', 'is_staff', 'is_superuser',)
         fields = ('id', 'dl', 'ham', 'emp', 'is_current_do',
                   'last_login', 'phone_set', ) + read_only_fields
 

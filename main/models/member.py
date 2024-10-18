@@ -241,6 +241,14 @@ class Member(AbstractBaseUser, PermissionsMixin, BaseModel):
         return self.status.is_current
 
     @property
+    def is_available(self):
+        return self.status.is_available
+
+    @property
+    def is_display(self):
+        return self.status.is_display
+
+    @property
     def is_unavailable(self):
         if getattr(self, '_unavailable_now', None) is not None:
             return self._unavailable_now > 0
