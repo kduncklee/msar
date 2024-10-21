@@ -94,9 +94,13 @@ class Event(BaseModel):
         if not self.finish_at:
             self.finish_at = self.start_at
         if self.type == 'operation' and self.status == 'resolved':
-            old = Event.objects.get(pk=self.pk)
-            if old.status == 'active':
+            try:
+                old = Event.objects.get(pk=self.pk)
+            except:  # being created now
                 self.finish_at = timezone.now()
+            else:
+                if old.status == 'active':
+                    self.finish_at = timezone.now()
         super(Event, self).save(*args, **kwargs)
         self.add_period(True)
 
