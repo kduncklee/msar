@@ -5,6 +5,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
+from datetime import timedelta
 from simple_history.models import HistoricalRecords
 
 from .base import BaseModel, BasePositionModel
