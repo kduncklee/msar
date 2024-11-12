@@ -35,6 +35,8 @@ class MemberStatusType(BasePositionModel):
     is_available = models.BooleanField(default=True) # page for callouts
     is_pro_eligible = models.BooleanField(default=True)
     is_do_eligible = models.BooleanField(default=True) # can serve DO shifts
+    is_patrol_eligible = models.BooleanField(default=False) # Shows in patrol list
+    is_patrol_expected = models.BooleanField(default=False) # Gets patrol signup reminders
     is_display = models.BooleanField(default=True) # show on site
     is_default = models.BooleanField(default=False) # Create new users with this type
     color = models.CharField(max_length=15, default=None, blank=True, null=True) # display color in calendar
@@ -243,6 +245,14 @@ class Member(AbstractBaseUser, PermissionsMixin, BaseModel):
     @property
     def is_available(self):
         return self.status.is_available
+
+    @property
+    def is_patrol_eligible(self):
+        return self.status.is_patrol_eligible
+
+    @property
+    def is_patrol_expected(self):
+        return self.status.is_patrol_expected
 
     @property
     def is_display(self):
