@@ -11,6 +11,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from dynamic_preferences.registries import global_preferences_registry
 from simple_history.models import HistoricalRecords
 
 from main.lib import push
@@ -81,6 +82,7 @@ class Message(BaseModel):
         ('cert_notice', 'Cert notice'),
         ('do_shift_starting', 'DO Shift Starting'),
         ('do_shift_pending', 'DO Shift Pending'),
+        ('patrol_reminder', 'Patrol reminder'),
     )
     PERIOD_FORMATS = (
         ('invite', 'invite'),
@@ -90,7 +92,7 @@ class Message(BaseModel):
         ('return', 'return'),
         ('test', 'test'),
     )
-    author = models.ForeignKey(Member, on_delete=models.CASCADE)
+    author = models.ForeignKey(Member, on_delete=models.SET_NULL, blank=True, null=True)
     text = models.TextField()
     format = models.CharField(choices=FORMATS, max_length=255)
     linked_rsvp = models.ForeignKey(
@@ -151,8 +153,9 @@ class Message(BaseModel):
                                        self.period.event.get_absolute_url())
             html_body += '<h3>Event:</h3><p><a href="{}">{}</a></p>'.format(
                 url, self.period)
-        html_body += '<h3>Sent by:</h3><p>{}<br>{}<br>{}</p>'.format(
-            self.author, self.author.display_phone, self.author.display_email)
+        if self.author:
+            html_body += '<h3>Sent by:</h3><p>{}<br>{}<br>{}</p>'.format(
+                self.author, self.author.display_phone, self.author.display_email)
         return html_body
 
     def queue(self):
@@ -442,9 +445,12 @@ class OutboundEmail(OutboundMessage):
         self.destination = self.email.address
         body = self.distribution.text
         html_body = self.distribution.html
+        global_preferences = global_preferences_registry.manager()
         try:
             message = AnymailMessage(
-                subject="BAMRU.net page [{}]".format(
+                subject="{}: {} [{}]".format(
+                    global_preferences['general__title_heading'],
+                    self.distribution.message.get_format_display(),
                     self.distribution.message.time_slug),
                 body=body,
                 to=[self.destination],
@@ -459,11 +465,14 @@ class OutboundEmail(OutboundMessage):
             logger.error('Anymail error: {}'.format(e))
         else:
             self.sid = message.anymail_status.message_id
+            if not self.sid:
+                self.sid = 'No server sid'
             status = message.anymail_status.status
             if status:
                 self.status = status.pop()
             else:
                 self.status = 'No server status'
+        logger.info('email send sid={} body={}'.format(self.sid, body))
         self.save()
 
 

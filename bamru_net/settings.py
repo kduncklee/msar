@@ -137,6 +137,9 @@ if os.environ.get('DJANGO_DB_USE_SQLITE'):
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': os.environ['DJANGO_DB_NAME'],
+            'OPTIONS': {
+                'timeout': 20, # Increase timeout to 20 seconds
+            },
         }
     }
 else:

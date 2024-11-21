@@ -1,13 +1,15 @@
+from django.template import Context, Template
 from django.utils import timezone
 
 import logging
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 from django_q.tasks import async_task
 from dynamic_preferences.registries import global_preferences_registry
 import urllib.request
 
 from .lib import groups
-from .models import Cert, Distribution, DoLog, Event, Member, Message, OutboundEmail, OutboundSms, Participant, Role
+from .models import Cert, Distribution, DoLog, Event, Member, Message, OutboundEmail, OutboundSms, Participant, Patrol, Role
 
 logger = logging.getLogger(__name__)
 
@@ -166,3 +168,24 @@ def archive_resolved_events(days):
         if last_log is None or (now - last_log.created_at).days >= days:
             event.status = 'archived'
             event.save()
+
+# @shared_task
+def patrol_reminder_email(title, message):
+    title_template = Template(title)
+    message_template = Template(message)
+    today = timezone.now()
+    first = today + relativedelta(months=1,day=1,hour=0,minute=0,second=0,microsecond=0)
+    last = today + relativedelta(months=1,day=99,hour=23,minute=59,second=59,microsecond=0)
+    for member in Member.members.filter(status__is_patrol_expected=True):
+        patrols = Patrol.objects.filter(member=member, start_at__gte=first, start_at__lte=last)
+        if patrols.count():
+            logger.info('{} is signed up for patrol: {}'.format(member.username, patrols))
+        else:
+            context = Context({'member': member, 'today': today, 'month': first.strftime('%B')})
+            title_text = title_template.render(context)
+            message_text = message_template.render(context)
+            logger.info('Sending patrol reminder to {}: {}'.format(member.username, message_text))
+            message_object = Message.objects.create(format='patrol_reminder', text=message_text)
+            dist = Distribution.objects.create(message=message_object, member=member, send_email=True)
+            dist.queue(None)
+    async_task(message_send, 'patrol_reminder')
