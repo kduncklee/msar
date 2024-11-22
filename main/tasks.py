@@ -173,7 +173,7 @@ def archive_resolved_events(days):
 def patrol_reminder_email(title, message):
     title_template = Template(title)
     message_template = Template(message)
-    today = timezone.now()
+    today = timezone.localtime()
     first = today + relativedelta(months=1,day=1,hour=0,minute=0,second=0,microsecond=0)
     last = today + relativedelta(months=1,day=99,hour=23,minute=59,second=59,microsecond=0)
     for member in Member.members.filter(status__is_patrol_expected=True):
