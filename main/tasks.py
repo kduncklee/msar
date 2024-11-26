@@ -2,8 +2,10 @@ from django.template import Context, Template
 from django.utils import timezone
 
 import logging
+from collections import defaultdict
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+from dateutil.rrule import rrule, DAILY
 from django_q.tasks import async_task
 from dynamic_preferences.registries import global_preferences_registry
 import urllib.request
@@ -169,23 +171,66 @@ def archive_resolved_events(days):
             event.status = 'archived'
             event.save()
 
-# @shared_task
-def patrol_reminder_email(title, message):
-    title_template = Template(title)
-    message_template = Template(message)
-    today = timezone.localtime()
-    first = today + relativedelta(months=1,day=1,hour=0,minute=0,second=0,microsecond=0)
-    last = today + relativedelta(months=1,day=99,hour=23,minute=59,second=59,microsecond=0)
+def _members_without_patrol(first, last):
+    members = []
     for member in Member.members.filter(status__is_patrol_expected=True):
         patrols = Patrol.objects.filter(member=member, start_at__gte=first, start_at__lte=last)
         if patrols.count():
             logger.info('{} is signed up for patrol: {}'.format(member.username, patrols))
         else:
-            context = Context({'member': member, 'today': today, 'month': first.strftime('%B')})
-            title_text = title_template.render(context)
-            message_text = message_template.render(context)
-            logger.info('Sending patrol reminder to {}: {}'.format(member.username, message_text))
-            message_object = Message.objects.create(format='patrol_reminder', text=message_text)
-            dist = Distribution.objects.create(message=message_object, member=member, send_email=True)
-            dist.queue(None)
+            members.append(member)
+    return members
+
+# @shared_task
+def patrol_reminder_email(message):
+    today = timezone.localtime()
+    first = today + relativedelta(months=1,day=1,hour=0,minute=0,second=0,microsecond=0)
+    last = today + relativedelta(months=1,day=99,hour=23,minute=59,second=59,microsecond=0)
+    context = Context({'today': today, 'month': first.strftime('%B')})
+    message_text = Template(message).render(context)
+    logger.info('Sending patrol reminder: {}'.format(message_text))
+    message_object = Message.objects.create(format='patrol_reminder', text=message_text)
+    for member in _members_without_patrol(first, last):
+        dist = Distribution.objects.create(message=message_object, member=member, send_email=True)
+        dist.queue(None)
     async_task(message_send, 'patrol_reminder')
+
+# @shared_task
+def patrol_monthly_summary(message):
+    def day_string(day):
+        return timezone.localtime(day).date().isoformat()
+    result = ''
+    today = timezone.localtime()
+    first = today + relativedelta(months=1,day=1,hour=0,minute=0,second=0,microsecond=0)
+    last = today + relativedelta(months=1,day=99,hour=23,minute=59,second=59,microsecond=0)
+    events_by_day = defaultdict(list)
+    patrols_by_day = defaultdict(list)
+    for e in Event.objects.filter(start_at__gte=first, start_at__lte=last):
+        events_by_day[day_string(e.start_at)].append(e)
+    for p in Patrol.objects.filter(start_at__gte=first, start_at__lte=last):
+        patrols_by_day[day_string(p.start_at)].append(p)
+    for day in rrule(freq=DAILY, dtstart=first, until=last):
+        events = events_by_day[day_string(day)]
+        patrols = patrols_by_day[day_string(day)]
+        if day.weekday() >= 5 or len(events) or len(patrols):
+            result += day.strftime('%a, %b ') + '{}\n'.format(day.day)
+            for e in events:
+                result += '  {e.title}\n'.format(e=e)
+            for p in patrols:
+                result += '  {m.username} - {m.full_name}\n'.format(m=p.member)
+            if day.weekday() >= 5 and not len(patrols):
+                result += '  Nobody!\n'
+            result += '\n'
+    context = Context({
+        'today': today,
+        'month': first.strftime('%B'),
+        'days': result,
+        'overdue': _members_without_patrol(first, last)
+    })
+    message_text = Template(message).render(context)
+    logger.info('Sending patrol status: {}'.format(message_text))
+    message_object = Message.objects.create(format='patrol_summary', text=message_text)
+    for member in Member.objects.select_related('status').filter(status__is_patrol_eligible=True):
+        dist = Distribution.objects.create(message=message_object, member=member, send_email=True)
+        dist.queue(None)
+    async_task(message_send, 'patrol_summary')

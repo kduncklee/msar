@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from anymail.message import AnymailMessage
 from django.conf import settings
 from django.db import models
+from django.template.defaultfilters import linebreaksbr
 from django.urls import reverse
 from django.utils import timezone
 from dynamic_preferences.registries import global_preferences_registry
@@ -83,6 +84,7 @@ class Message(BaseModel):
         ('do_shift_starting', 'DO Shift Starting'),
         ('do_shift_pending', 'DO Shift Pending'),
         ('patrol_reminder', 'Patrol reminder'),
+        ('patrol_summary', 'Patrol summary'),
     )
     PERIOD_FORMATS = (
         ('invite', 'invite'),
@@ -145,7 +147,7 @@ class Message(BaseModel):
     def html(self, unauth_rsvp_token):
         # TODO: Use a Django template for this
         html_body = ''
-        html_body += '<h3>Message:</h3><p>{}</p>'.format(self.text)
+        html_body += '<h3>Message:</h3><pre>{}</pre>'.format(linebreaksbr(self.text))
         if self.rsvp_template:
             html_body += self.rsvp_template.html(unauth_rsvp_token)
         if self.period:
