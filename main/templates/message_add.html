@@ -62,6 +62,7 @@ select: { style: 'os', selector: 'tr>td:not(.control)' },
 
 order: [[ 4, 'asc' ], [1, 'asc']],
 
+// If columns are changed, update fn.dataTable.ext.search.push below.
 columns: [
     { data: 'mark', width: '10px', responsivePriority: 1,
       orderable: false,
@@ -76,6 +77,7 @@ columns: [
           return data;
       }
     },
+    { data: 'id', visible: false, className: 'noVis', },
     { data: 'status', title: 'Status', responsivePriority: 5,
       render: function(data, type, row, meta) {
           if (type == 'sort')
@@ -96,7 +98,6 @@ columns: [
     { data: 'role_order', visible: false, className: 'noVis', },
     { data: 'display_phone', title: 'Phone', responsivePriority: 2, },
     { data: 'display_email', title: 'Email', responsivePriority: 3, },
-    { data: 'id', visible: false, className: 'noVis', },
     { data: 'is_unavailable', visible: false, className: 'noVis', },
 ],
 
@@ -270,7 +271,7 @@ $.fn.dataTable.ext.search.push(
     // Custom filter data is an array not an object, change this if cols reordered
     function( settings, data, dataIndex ) {
         var node = $('#dTbl').DataTable().row(dataIndex).node();
-        if ( showStatus.includes(data[2]) ) {
+        if ( showStatus.includes(data[3]) ) {
             return true;
         }
 
