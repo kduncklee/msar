@@ -173,7 +173,7 @@ def archive_resolved_events(days):
 
 def _members_without_patrol(first, last):
     members = []
-    for member in Member.members.filter(status__is_patrol_expected=True):
+    for member in Member.members.filter(status__is_patrol_expected=True).order_by('username'):
         patrols = Patrol.objects.filter(member=member, start_at__gte=first, start_at__lte=last)
         if patrols.count():
             logger.info('{} is signed up for patrol: {}'.format(member.username, patrols))
