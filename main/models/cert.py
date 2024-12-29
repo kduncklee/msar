@@ -114,20 +114,8 @@ def cert_upload_path_handler(instance, filename):
 
 
 class Cert(BasePositionModel):
-    TYPES = (  # deprecated
-        ('medical', 'Medical'),
-        ('cpr', 'CPR'),
-        ('ham', 'Ham'),
-        ('tracking', 'Tracking'),
-        ('avalanche', 'Avalanche'),
-        ('rigging', 'Rigging'),
-        ('ics', 'ICS'),
-        ('overhead', 'Overhead'),
-        ('driver', 'SO Driver'),
-        ('background', 'SO Background'),
-        )
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    type = models.CharField(choices=TYPES, max_length=255, null=True, blank=True)  # deprecated
+    type = models.CharField(choices=(), max_length=255, null=True, blank=True)  # deprecated
     subtype = models.ForeignKey(CertSubType, on_delete=models.SET_NULL, null=True)
     earned_on = models.DateField(blank=True, null=True)
     expires_on = models.DateField(blank=True, null=True)
