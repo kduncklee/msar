@@ -187,6 +187,7 @@ class EventViewSet(BaseViewSet):
                 "period_set__participant_set__member__phone_set",
                 "period_set__participant_set__member__email_set",
                 "period_set__participant_set__member__role_set",
+                "operation_type",
             )
         return qs
 
@@ -364,6 +365,11 @@ class RadioChannelsAvailableViewSet(CreateListModelMixin, BaseViewSet):
     ordering = ['position']
     serializer_class = RadioChannelsAvailableSerializer
 
+class OperationTypesAvailableViewSet(CreateListModelMixin, BaseViewSet):
+    queryset = OperationTypesAvailable.objects.all()
+    ordering = ['position']
+    serializer_class = OperationTypesAvailableSerializer
+
 class CreateListNestedViewSetMixin(CreateListModelMixin, NestedViewSetMixin):
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
@@ -381,7 +387,7 @@ class CalloutFilter(filters.FilterSet):
     status = filters.MultipleChoiceFilter(choices=Event.STATUS_TYPES)
     class Meta:
         model = Event
-        fields = ('status', 'operation_type')
+        fields = ('status',)
 
 
 class CalloutViewSet(CreateListModelMixin, BaseViewSet):

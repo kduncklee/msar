@@ -28,6 +28,14 @@ class RadioChannelsAvailable(BasePositionModel):
     def __str__(self):
         return self.name
 
+class OperationTypesAvailable(BasePositionModel):
+    name = models.CharField(max_length=255)
+    enabled = models.BooleanField(default=True)
+    icon = models.CharField(max_length=255, blank=True)
+    color = models.CharField(max_length=15, default=None, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
 
 class Event(BaseModel):
     TYPES = (
@@ -35,18 +43,12 @@ class Event(BaseModel):
         ('operation', 'Operation'),
         ('training', 'Training'),
         ('community', 'Community'))
-    OPERATION_TYPES = (
-        ('search', 'Search'),
-        ('rescue', 'Rescue'),
-        ('information', 'Information'))
     STATUS_TYPES = (
         ('active', 'Active'),
         ('resolved', 'Resolved'),
         ('archived', 'Archived'))
     type = models.CharField(choices=TYPES, max_length=255)
-    operation_type = models.CharField(
-        choices=OPERATION_TYPES, max_length=255,
-        blank=True, null=True)
+    operation_type = models.ForeignKey(OperationTypesAvailable, null=True, on_delete=models.PROTECT)
     title = models.CharField(max_length=255)
     leaders = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)

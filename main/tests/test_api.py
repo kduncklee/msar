@@ -1,7 +1,7 @@
 from django.test.utils import override_settings
 from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
-from main.models import CalloutResponseOption, Member, MemberStatusType, Participant
+from main.models import CalloutResponseOption, Member, MemberStatusType, OperationTypesAvailable, Participant
 from main.tests.test_member import MemberTestMixin
 from unittest.mock import patch
 
@@ -17,6 +17,7 @@ class TestApi(MemberTestMixin, APITestCase):
             username='jane doe',
             status=MemberStatusType.objects.first(),
         )
+        OperationTypesAvailable.objects.get_or_create(name='rescue')
         CalloutResponseOption.objects.get_or_create(
             response='10-8', is_attending=True)
         CalloutResponseOption.objects.get_or_create(

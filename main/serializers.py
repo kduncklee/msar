@@ -420,7 +420,25 @@ class RadioChannelsAvailableSerializer(serializers.ModelSerializer):
         model = RadioChannelsAvailable
         fields = ('id', 'position', 'name', 'is_primary', 'is_additional')
 
+class OperationTypesAvailableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OperationTypesAvailable
+        fields = ('id', 'position', 'name', 'enabled', 'icon', 'color')
+
+
+class DataFileSerializer(BaseFileSerializer):
+    class Meta:
+        model = DataFile
+        read_only_fields = ('name', 'extension', 'size', 'content_type')
+        write_once_fields = ('member', 'file')
+        fields = ('id', 'file', 'member', 'event', 'created_at', 'name', 'extension', 'size', 'content_type')
+    member = CalloutMemberSerializer(required=False)
+
+
 class CalloutListSerializer(serializers.ModelSerializer):
+    operation_type = serializers.CharField(source='operation_type.name', allow_null=True)
+    operation_type_icon = serializers.CharField(source='operation_type.icon', allow_null=True)
+    operation_type_color = serializers.CharField(source='operation_type.color', allow_null=True)
     location = LocationSerializer(source='*', required=False)
     my_response = serializers.SerializerMethodField()
     responded = serializers.SerializerMethodField()
@@ -430,7 +448,8 @@ class CalloutListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         read_only_fields = ('created_at',)
-        fields = ('id', 'title', 'operation_type',
+        fields = ('id', 'title',
+                  'operation_type', 'operation_type_icon', 'operation_type_color',
                   'my_response', 'responded',
                   'log_count', 'log_last_id',
                   'status', 'location',
@@ -465,16 +484,8 @@ class CalloutListSerializer(serializers.ModelSerializer):
         return obj.calloutlog_set.order_by('-id').first().id
 
 
-class DataFileSerializer(BaseFileSerializer):
-    class Meta:
-        model = DataFile
-        read_only_fields = ('name', 'extension', 'size', 'content_type')
-        write_once_fields = ('member', 'file')
-        fields = ('id', 'file', 'member', 'event', 'created_at', 'name', 'extension', 'size', 'content_type')
-    member = CalloutMemberSerializer(required=False)
-
-
 class CalloutDetailSerializer(CalloutListSerializer):
+    operation_type = serializers.SlugRelatedField(slug_field='name', queryset=OperationTypesAvailable.objects.all())
     last_log_timestamp = serializers.SerializerMethodField()
     operational_periods = CalloutPeriodSerializer(
         source='period_set', many=True, read_only=True)

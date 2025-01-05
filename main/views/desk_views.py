@@ -12,7 +12,7 @@ from django.views import generic
 from rules.contrib.views import PermissionRequiredMixin
 
 from main.lib import mapping
-from main.models import Event, EventNotificationsAvailable, RadioChannelsAvailable
+from main.models import Event, EventNotificationsAvailable, OperationTypesAvailable, RadioChannelsAvailable
 
 import logging
 logger = logging.getLogger(__name__)
@@ -106,9 +106,7 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
     def get_form(self):
         form = super().get_form()
 
-        form.fields['operation_type'].choices = [
-            c for c in form.fields['operation_type'].choices
-            if c[0] != 'information']
+        form.fields['operation_type'].queryset = OperationTypesAvailable.objects.filter(enabled=True)
 
         form.fields['handling_unit'].label = "Tag & Handling Unit"
         form.fields['handling_unit'].help_text = "Tag Number and Handling Unit"
@@ -164,7 +162,7 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
             )
 
         if self.request.user.status.short == 'DESK':
-            form.fields['operation_type'].initial = (Event.OPERATION_TYPES[0])  # just default to the first one if one is not selected by the desk
+            form.fields['operation_type'].initial = form.fields['operation_type'].queryset.first()  # just default to the first one if one is not selected by the desk
             form.fields['notifications_made'].initial = (
                 EventNotificationsAvailable.objects.filter(name='LHS Desk'))
 
@@ -225,7 +223,7 @@ class DeskCalloutListView(PermissionRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         status = self.request.GET.get('status', 'active')
-        results = Event.objects.exclude(operation_type='information')
+        results = Event.objects.all()
         if status != 'all':
             results = results.filter(type='operation',status=status)
         return results.order_by('-id')

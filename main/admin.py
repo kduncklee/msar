@@ -81,6 +81,11 @@ class PeriodAdmin(SimpleHistoryAdmin):
         ]
 
 
+@admin.register(OperationTypesAvailable)
+class OperationTypesAvailableAdmin(admin.ModelAdmin):
+    list_display = ('name', 'enabled',)
+
+
 @admin.register(Patrol)
 class PatrolAdmin(SimpleHistoryAdmin):
     list_display = ('member', 'start_at',)
