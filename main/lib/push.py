@@ -45,7 +45,10 @@ def generate_push_message_firebase(
     return m
 
 def send_push_message_devices_firebase(devices, message):
-    response = devices.send_message(message)
+    try:
+        response = devices.send_message(message)
+    except Exception as e:
+        logger.error('unable to send message {}: {}'.format(message, str(e)))
     logger.info(response)
     logger.info('{} success, {} failure'.format(
         response.response.success_count, response.response.failure_count))

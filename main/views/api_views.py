@@ -370,6 +370,11 @@ class OperationTypesAvailableViewSet(CreateListModelMixin, BaseViewSet):
     ordering = ['position']
     serializer_class = OperationTypesAvailableSerializer
 
+class CalloutResponseOptionViewSet(CreateListModelMixin, BaseViewSet):
+    queryset = CalloutResponseOption.objects.all()
+    ordering = ['position']
+    serializer_class = CalloutResponseOptionSerializer
+
 class CreateListNestedViewSetMixin(CreateListModelMixin, NestedViewSetMixin):
     def create(self, request, *args, **kwargs):
         data = request.data.copy()

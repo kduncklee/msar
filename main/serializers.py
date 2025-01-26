@@ -386,14 +386,12 @@ class CalloutMemberSerializer(serializers.ModelSerializer):
         read_only_fields = ('mobile_phone',)
 
 class CalloutResponseSerializer(serializers.ModelSerializer):
-    #event = serializers.CharField(source='period.event.id', allow_null=True)
     member = CalloutMemberSerializer()
 
     class Meta:
         model = CalloutResponse
         read_only_fields = ('created_at',)
         fields = ('id', 'response', 'member') + read_only_fields
-        #  'event', 'period',
 
 class CalloutResponsePostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -424,6 +422,11 @@ class OperationTypesAvailableSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationTypesAvailable
         fields = ('id', 'position', 'name', 'enabled', 'icon', 'color')
+
+class CalloutResponseOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CalloutResponseOption
+        fields = ('id', 'position', 'response', 'is_attending', 'color')
 
 
 class DataFileSerializer(BaseFileSerializer):
@@ -473,7 +476,7 @@ class CalloutListSerializer(serializers.ModelSerializer):
         return response.response
 
     def get_responded(self, obj):
-        return CalloutResponse.objects.filter(period__event=obj).values('response').annotate(total=Count('response')).order_by()
+        return CalloutResponse.objects.filter(period__event=obj).order_by('response').values('response').annotate(total=Count('response'))
 
     def get_log_count(self, obj):
         return obj.calloutlog_set.all().count()

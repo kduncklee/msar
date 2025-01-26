@@ -478,9 +478,10 @@ class OutboundEmail(OutboundMessage):
         self.save()
 
 
-class CalloutResponseOption(BaseModel):
+class CalloutResponseOption(BasePositionModel):
     response = models.CharField(max_length=255)
     is_attending = models.BooleanField(default=True)
+    color = models.CharField(max_length=15, default='', blank=True)
 
     @staticmethod
     def check_is_attending(response):
