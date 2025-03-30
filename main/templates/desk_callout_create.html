@@ -6,10 +6,10 @@
 {% block content %}
 <main role="main" class="container-fluid">
   <div id="content">
-    <form method="post">
+    <form method="post" id="id_form">
       {% csrf_token %}
       {% bootstrap_form form %}
-      <input type="submit" value="Submit" />
+      <input type="submit" value="Submit" id="id_submit" />
     </form>
   </div>
 </main>
@@ -30,6 +30,11 @@ $(function () {
     }
   });
 
+  // prevent double-submit
+  $("#id_form").on('submit', function(event) {
+    $("#id_submit").prop("disabled", true);
+    $("#id_submit").val( "Submitting. Please wait...");
+  });
 });
 
 

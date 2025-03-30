@@ -5,9 +5,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.forms.models import ModelForm
 from django.http import HttpResponseRedirect
+from django.template.defaultfilters import linebreaksbr
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 from django.views import generic
 from rules.contrib.views import PermissionRequiredMixin
 
@@ -88,10 +90,12 @@ class CalloutForm(ModelForm):
 
 class ConfirmCalloutForm(CalloutForm):
     force = forms.BooleanField(required=True, initial=False)
+    field_order = ['force']
 
     def clean_force(self):
         data = self.cleaned_data['force']
         if data:
+            logger.info('Force bypassing duplicate callout protection')
             return data
         else:
             raise forms.ValidationError('Please confirm that this is not a duplicate callout.')
@@ -154,11 +158,14 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
         form.fields['notifications_made'].help_text = "List of other agencies already notified. Select all that apply"
 
         if 'force' in form.fields:
-            form.fields['force'].label = 'This is a new callout and not a duplicate of a recent call below.'
+            form.fields['force'].label = mark_safe('WARNING: There is already a callout active.<br><br>If the callout you are making matches the one below, please click it and add any additional information there.<br><br>If this is a new and different call, check this box and fill out the form.')
             form.fields['force'].help_text = format_html(
-                '<dl>{}</dl',
-                format_html_join('\n','<dt>{}</dt><dd>{}</dd>',
-                                 ((c.title, c.description) for c in self.recent))
+                '<dl>{}</dl>',
+                format_html_join('\n','<dt><a href="{}">{}</a></dt><dd>{}</dd>',
+                                 ((reverse('desk_callout_detail', args=[c.id]),
+                                   c.title,
+                                   linebreaksbr(c.description))
+                                  for c in self.recent))
             )
 
         if self.request.user.status.short == 'DESK':
@@ -198,7 +205,7 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
 class DeskCalloutCreateView(DeskCalloutBaseView, generic.edit.CreateView):
     def get_form_class(self):
         qs = Event.objects.filter(type='operation', status='active')
-        self.recent = qs.filter(created_at__gte=timezone.now() - timedelta(minutes=15))
+        self.recent = qs.filter(created_at__gte=timezone.now() - timedelta(minutes=30))
         return ConfirmCalloutForm if self.recent else CalloutForm
 
 class DeskCalloutUpdateView(DeskCalloutBaseView, generic.edit.UpdateView):
@@ -223,7 +230,7 @@ class DeskCalloutListView(PermissionRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         status = self.request.GET.get('status', 'active')
-        results = Event.objects.all()
+        results = Event.objects.filter(type='operation')
         if status != 'all':
-            results = results.filter(type='operation',status=status)
+            results = results.filter(status=status)
         return results.order_by('-id')
