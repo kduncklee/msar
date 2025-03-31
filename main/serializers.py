@@ -76,7 +76,7 @@ class MemberSerializer(serializers.HyperlinkedModelSerializer):
                   'last_login', 'phone_set', ) + read_only_fields
 
     def get_color(self, member):
-        return member.status.color
+        return member.status_color
 
 
 class ParticipantMemberSerializer(serializers.HyperlinkedModelSerializer):
@@ -255,7 +255,7 @@ class PatrolSerializer(serializers.ModelSerializer):
         fields = ('id', 'member', 'start_at', 'finish_at', 'description', 'color',)
 
     def get_color(self, patrol):
-        return patrol.member.status.color
+        return patrol.member.status_color
 
 
 class DistributionSerializer(serializers.ModelSerializer):

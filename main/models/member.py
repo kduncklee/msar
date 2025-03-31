@@ -122,6 +122,8 @@ class Member(AbstractBaseUser, PermissionsMixin, BaseModel):
     @property
     def status_order(self):
         """ Returns value that can be used to sort by status field. """
+        if not self.status:
+            return 0
         return self.status.position
 
     @property
@@ -136,7 +138,9 @@ class Member(AbstractBaseUser, PermissionsMixin, BaseModel):
         """ Return string, list of ordered roles combined with status"""
         roles = [r.role for r in self.role_set.all()]
         types = [r[0] for r in Role.TYPES]
-        result = [r for r in types if r in roles] + [self.status.short]
+        result = [r for r in types if r in roles]
+        if self.status:
+            result += [self.status.short]
         return ' '.join(result)
 
     @property
@@ -239,24 +243,30 @@ class Member(AbstractBaseUser, PermissionsMixin, BaseModel):
                     year=plan_year, quarter__lt=plan_quarter).count())
 
     @property
+    def status_color(self):
+        if not self.status:
+            return None
+        return self.status.color
+
+    @property
     def is_current(self):
-        return self.status.is_current
+        return self.status and self.status.is_current
 
     @property
     def is_available(self):
-        return self.status.is_available
+        return self.status and self.status.is_available
 
     @property
     def is_patrol_eligible(self):
-        return self.status.is_patrol_eligible
+        return self.status and self.status.is_patrol_eligible
 
     @property
     def is_patrol_expected(self):
-        return self.status.is_patrol_expected
+        return self.status and self.status.is_patrol_expected
 
     @property
     def is_display(self):
-        return self.status.is_display
+        return self.status and self.status.is_display
 
     @property
     def is_unavailable(self):

@@ -17,6 +17,11 @@ class TestApi(MemberTestMixin, APITestCase):
             username='jane doe',
             status=MemberStatusType.objects.first(),
         )
+        self.no_user = Member.objects.create(
+            first_name='No',
+            last_name='Status',
+            username='r99',
+        )
         OperationTypesAvailable.objects.get_or_create(name='rescue')
         CalloutResponseOption.objects.get_or_create(
             response='10-8', is_attending=True)
