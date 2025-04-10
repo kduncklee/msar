@@ -168,7 +168,7 @@ class DeskCalloutBaseView(PermissionRequiredMixin, generic.edit.ModelFormMixin):
                                   for c in self.recent))
             )
 
-        if self.request.user.status.short == 'DESK':
+        if self.request.user.status and self.request.user.status.short == 'DESK':
             form.fields['operation_type'].initial = form.fields['operation_type'].queryset.first()  # just default to the first one if one is not selected by the desk
             form.fields['notifications_made'].initial = (
                 EventNotificationsAvailable.objects.filter(name='LHS Desk'))

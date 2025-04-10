@@ -47,7 +47,7 @@ def message_send(message_id):
         email.send()
 
 def send_cert_notice(cert, text, author, cc=[]):
-    if not cert.member.status.is_current:
+    if not cert.member.is_current:
         logger.info('Skipping sending cert expiration notice to {}: {}'
                     .format(cert.member, text))
         return

@@ -8,12 +8,12 @@ logger = logging.getLogger(__name__)
 @rules.predicate
 def is_current_member(user):
     return (user.is_authenticated and
-            user.status.is_current)
+            user.is_current)
 
 @rules.predicate
 def is_available_member(user):
     return (user.is_authenticated and
-            user.status.is_available)
+            user.is_available)
 
 @rules.predicate
 def is_member_self(user, member): # only for Member
@@ -52,7 +52,7 @@ def is_do_planner(user):
 @rules.predicate
 def is_desk(user):
     return (user.is_authenticated and
-            user.status.short == 'DESK')
+            user.status and user.status.short == 'DESK')
 
 
 # Permissions are used in views and templates. Follow the Django
