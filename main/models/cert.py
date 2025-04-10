@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 class DisplayCert:
     cert = None
     type: str = None
+    type_display: str = None
     expires_on = None
     description: str = ''
     color: str = ''
@@ -67,6 +68,7 @@ class CertType(BasePositionModel):
     def get_display_cert(self, cert_set):
         current = DisplayCert()
         current.type = self.name
+        current.type_display = self.display_name
         combined_descriptions = []
         includes_other = False
         for cert in cert_set:

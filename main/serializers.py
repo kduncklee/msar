@@ -148,6 +148,7 @@ class MemberCertSerializer(serializers.HyperlinkedModelSerializer):
                     result = 'TemplateError'
                 c = DisplayCert()
                 c.type = cert_type.name
+                c.type_display = cert_type.display_name
                 c.description = result
                 c.count = 1
                 certs.append(dataclasses.asdict(c))
