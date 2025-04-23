@@ -42,7 +42,11 @@ $(document).ready( function() {
 
     href = returns[rx];
 
+    {% if bulk %}
+    $("#subhdr")[0].innerHTML = href + " > Bulk add";
+    {% else %}
     $("#subhdr")[0].innerHTML = href + " > {{ member.full_name }} ({{ member.status }})";
+    {% endif %}
 });
 
 function show_hide_description() {

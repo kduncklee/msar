@@ -1,0 +1,95 @@
+{% extends 'cert_list.html' %}
+
+{% block title %}Cert Bulk Add{% endblock %}
+
+{% block initComplete %}
+SetMemberFilter (table);
+EnableMarkSelection(table);
+{% endblock initComplete %}
+
+{% block table_options %}
+{{block.super}}
+select: 'os',
+{% endblock table_options %}
+
+
+{% block table_buttons_first %}
+{
+    text: '<i class="fa fa-certificate"></i> Add',
+    extend: 'collection',
+    autoClose: true,
+    buttons: [
+        {% for type in cert_types %}
+        {
+            text: 'Add {{ type }}',
+            action: function () {
+                AddMembers("{{type|urlencode}}");
+            }
+
+        },
+        {% endfor %}
+    ]
+},
+{% endblock table_buttons_first %}
+
+{% block table_order %}order: [[ 4, 'asc' ], [1, 'asc']],{% endblock table_order %}
+
+{% block table_columns_first %}
+    { data: 'id', width: '10px', responsivePriority: 1,
+      orderable: false, className: 'mark-checkbox noVis',
+      render: function(data, type, row, meta) {
+          if (type == 'display')
+              return '<div data-id="' + row.id + '"></div>';
+          else
+              return data;
+      }
+    },
+{% endblock table_columns_first %}
+
+
+{% block functions %}
+{{block.super}}
+
+function AddMembers ( type ) {
+        var members = [];
+        $.each( $('td.mark-checkbox.marked'),  function (i, el) {
+            members.push($(this.firstChild).data().id)
+        });
+
+        if (members.length == 0) {
+            alert('Select members before adding them');
+            return;
+        }
+
+        console.log(members);
+
+        const url = new URL('{% url "cert_bulk_new2" %}', window.location.origin);
+        url.searchParams.append('returnx', 'cl');
+        url.searchParams.append('type', type);
+
+        for (var i = 0; i < members.length; i++) {
+            url.searchParams.append('m', members[i]);
+        }
+        console.log(url.href);
+        location.href= url.href;
+}
+
+
+function UpdateSubheaderBasedOnSettings(table) {
+    // Extract currently selected status based on filter
+    var showStatus = [];
+    $('#filter-status option').each(function() {
+        if (!this.selected) {
+            showStatus.push(this.value);
+        }
+    });
+
+    var shdr = '<a href="{% url 'cert_list' %}">Certs</a>';
+    $('#subhdr')[0].innerHTML = shdr + ' > Bulk Add (' +
+        showStatus.join(', ') + ')';
+    $('#subhdr-sm')[0].innerHTML = shdr + ' > Bulk Add ';
+    document.title = 'Bulk Cert Add';
+
+}
+
+{% endblock functions %}

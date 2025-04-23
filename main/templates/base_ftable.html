@@ -56,6 +56,7 @@ $(document).ready(function() {
                 extend: 'collection',
                 autoClose: true,
                 buttons: [
+{% block more_button_first %}{% endblock more_button_first %}
                     { text: 'Search',
                       action: function () { $("#dTbl_filter").toggle() }
                     },

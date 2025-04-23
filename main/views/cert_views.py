@@ -122,13 +122,40 @@ class CertCreateView(CertEditMixin, generic.edit.CreateView):
         return CertType.objects.get(name=name)
 
     def get_member(self):
-        return self.request.user
+        return get_object_or_404(Member, id=self.kwargs['member'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['new'] = True
+        context['bulk'] = False
         context['cert'] = Cert(type=self.cert_type)
         return context
+
+
+class CertBulkCreateView(CertCreateView):
+    def get_member(self):
+        return self.request.user
+
+    def form_valid(self, form):
+        cert = form.save(commit=False)
+        if not cert.subtype.is_other:
+            cert.description = ''
+
+        for member in self.request.GET.getlist('m'):
+            cert.pk = None
+            cert.member_id = member
+
+            if not self.request.user.has_perm('main.change_cert', cert):
+                raise PermissionDenied
+
+            cert.save()
+        return HttpResponseRedirect(reverse('cert_list'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['bulk'] = True
+        return context
+
 
 class CertEditView(CertEditMixin, generic.edit.UpdateView):
     permission_required = 'main.change_cert'
@@ -154,6 +181,10 @@ class CertListView(PermissionRequiredMixin, MemberStatusTypeMixin, generic.Templ
         context = super().get_context_data(**kwargs)
         context['cert_types'] = CertType.display_cert_types
         return context
+
+class CertBulkCreateMemberView(CertListView):
+    template_name = 'cert_bulk_add.html'
+    permission_required = 'main.add_cert'
 
 
 @login_required

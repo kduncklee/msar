@@ -9,6 +9,12 @@
 <strong class="d-none d-md-block" id="subhdr"></strong>
 {% endblock subheader %}
 
+{% block more_button_first %}
+{ text: 'Bulk add',
+  action: function () { location.href = '{% url "cert_bulk_new" %}' }
+},
+{% endblock more_button_first %}
+
   {% block dtable %}
   <table id="dTbl" class="display table-bordered compact nowrap" style="width:100%">
   </table>
@@ -28,9 +34,11 @@ dataSrc: function(json) {
         return rows;
 }
 },
-order: [[ 2, 'asc' ], [0, 'asc']],
+
+{% block table_order %}order: [[ 3, 'asc' ], [0, 'asc']],{% endblock table_order %}
 
 columns: [
+{% block table_columns_first %}{% endblock table_columns_first %}
     { data: 'full_name', title: 'Name', responsivePriority: 1,
       render: function(data, type, row, meta) {
           if (type == 'display')
