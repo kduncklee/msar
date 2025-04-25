@@ -130,12 +130,12 @@ def is_valid_subtype_in(value, cert_list):
     return False
 
 class MemberCertViewSet(BaseViewSet):
-    queryset = Member.objects.prefetch_related('cert_set__subtype__type', 'role_set')
     serializer_class = MemberCertSerializer
     search_fields = ('username',  )
+    ordering = ['last_name']
 
     def get_queryset(self):
-        filter_kwargs = {}
+        filter_kwargs = {'status__is_display': True}
         if hasattr(self.request, 'query_params'):
             if self.request.query_params.get('status'):
                 filter_kwargs['status__short'] = self.request.query_params['status']
