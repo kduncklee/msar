@@ -3,7 +3,7 @@ from main.models import *
 from main.serializers import *
 
 from django import forms
-from django.db.models import Prefetch
+from django.db.models import Count, Max, Prefetch
 from django.http import FileResponse
 from rest_framework import exceptions, generics, mixins, parsers, permissions, response, serializers, views, viewsets, renderers
 from rest_framework.decorators import action
@@ -396,18 +396,31 @@ class CalloutFilter(filters.FilterSet):
 
 
 class CalloutViewSet(CreateListModelMixin, BaseViewSet):
-    queryset = Event.objects.filter(type='operation').prefetch_related(
-        'created_by',
-        'period_set',
-        'period_set__calloutresponse_set',
-        'period_set__calloutresponse_set__member',
-        'period_set__calloutresponse_set__member__phone_set',
-        'calloutlog_set',
-        'datafile_set',
-        'datafile_set__member',
-        'datafile_set__member__phone_set',
-    )
     filterset_class = CalloutFilter
+
+    def get_queryset(self):
+        queryset = Event.objects.filter(type='operation').select_related(
+            'created_by',
+            'operation_type',
+        ).prefetch_related(
+            Prefetch('period_set__calloutresponse_set', queryset=CalloutResponse.objects.filter(member=self.request.user), to_attr='my_response'),
+            Prefetch('period_set__calloutresponse_set', to_attr='responses'),
+        )
+        if getattr(self, 'action', None) != 'list':
+            queryset = queryset.prefetch_related(
+                'period_set',
+                'period_set__calloutresponse_set',
+                'period_set__calloutresponse_set__member',
+                'period_set__calloutresponse_set__member__phone_set',
+                'datafile_set',
+                'datafile_set__member',
+                'datafile_set__member__phone_set',
+            )
+        return queryset.annotate(
+            calloutlog_count=Count('calloutlog', distinct=True),
+            calloutlog_max_id=Max('calloutlog__id'),
+            #response_count=Count('period__calloutresponse__response', distinct=True),
+        )
 
     def get_serializer_class(self):
         if getattr(self, 'action', None) == 'list':
@@ -443,7 +456,7 @@ class CalloutResponseViewSet(CreateListModelMixin, BaseViewSet):
 
 
 class CalloutLogViewSet(CreateListNestedViewSetMixin, BaseViewSet):
-    queryset = CalloutLog.objects.prefetch_related('member')
+    queryset = CalloutLog.objects.prefetch_related('member', 'member__phone_set')
     serializer_class = CalloutLogSerializer
 
     def perform_create(self, serializer):

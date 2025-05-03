@@ -464,9 +464,13 @@ class CalloutListSerializer(serializers.ModelSerializer):
         return super().create(validated_data, **kwargs)
 
     def get_my_response(self, obj):
-        period = Period.objects.filter(event=obj).order_by('position').first()
-        if period is None:
+        period = obj.period_set.first()
+        if not period:
             return None
+        if hasattr(period, 'my_response'): # First try to use annotation from api_views
+            if not period.my_response:
+                return None
+            return period.my_response[0].response
         try:
             response = CalloutResponse.objects.get(
                 period=period, member=self.context['request'].user)
@@ -477,15 +481,32 @@ class CalloutListSerializer(serializers.ModelSerializer):
         return response.response
 
     def get_responded(self, obj):
-        return CalloutResponse.objects.filter(period__event=obj).order_by('response').values('response').annotate(total=Count('response'))
+        period = obj.period_set.first()
+        if not period:
+            return []
+        if not hasattr(period, 'responses'):
+            return CalloutResponse.objects.filter(period__event=obj).order_by('response').values('response').annotate(total=Count('response'))
+        # Use 'responses' annotation from api_views to avoid N+1 query
+        responded = {}
+        for r in period.responses:
+            if r.response in responded:
+                responded[r.response] += 1
+            else:
+                responded[r.response] = 1
+        return [{"response": key, "total": value} for key,value in responded.items()]
+
 
     def get_log_count(self, obj):
+        if hasattr(obj, 'calloutlog_count'): # First try to use annotation from api_views
+            return obj.calloutlog_count
         return obj.calloutlog_set.all().count()
 
     def get_log_last_id(self, obj):
         if not self.get_log_count(obj):
             return 0
-        return obj.calloutlog_set.order_by('-id').first().id
+        if hasattr(obj, 'calloutlog_max_id'): # First try to use annotation from api_views
+            return obj.calloutlog_max_id
+        return calloutlog_set.order_by('-id').first().id
 
 
 class CalloutDetailSerializer(CalloutListSerializer):
