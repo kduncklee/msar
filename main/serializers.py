@@ -506,7 +506,7 @@ class CalloutListSerializer(serializers.ModelSerializer):
             return 0
         if hasattr(obj, 'calloutlog_max_id'): # First try to use annotation from api_views
             return obj.calloutlog_max_id
-        return calloutlog_set.order_by('-id').first().id
+        return obj.calloutlog_set.order_by('-id').first().id
 
 
 class CalloutDetailSerializer(CalloutListSerializer):
