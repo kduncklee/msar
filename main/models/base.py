@@ -57,3 +57,12 @@ class Configuration(BaseModel):
             return object.value
         else:
             return None
+
+class Webhook(BaseModel):
+    HOOK_TYPES = (
+        ('callout_created', 'Callout Created'),
+        ('callout_resolved', 'Callout Resolved'),
+        ('callout_log', 'Callout Log'),
+    )
+    hook = models.CharField(choices=HOOK_TYPES, max_length=255)
+    url = models.CharField(max_length=255)

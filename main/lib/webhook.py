@@ -1,17 +1,12 @@
-from dynamic_preferences.registries import global_preferences_registry
 from rest_framework.renderers import JSONRenderer
-import json
 import requests
+
+from main.models import Webhook
 
 import logging
 logger = logging.getLogger(__name__)
 
-def trigger_webhook(name, data):
-    global_preferences = global_preferences_registry.manager()
-    url = global_preferences['webhook__' + name]
-    if not url:
-        logger.info('Webhook {} not set, skipping'.format(name))
-        return
+def trigger_webhook_url(url, data):
     session = requests.Session()
     session.headers.update({
         'accept': 'application/json',
@@ -25,3 +20,10 @@ def trigger_webhook(name, data):
         logger.info(message)
     else:
         logger.error(message)
+
+def trigger_webhook(name, data):
+    for webhook in Webhook.objects.filter(hook=name):
+        try:
+            trigger_webhook_url(webhook.url, data)
+        except Exception as e:
+            logger.error(str(e))

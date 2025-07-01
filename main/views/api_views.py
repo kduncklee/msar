@@ -419,7 +419,6 @@ class CalloutViewSet(CreateListModelMixin, BaseViewSet):
         return queryset.annotate(
             calloutlog_count=Count('calloutlog', distinct=True),
             calloutlog_max_id=Max('calloutlog__id'),
-            #response_count=Count('period__calloutresponse__response', distinct=True),
         )
 
     def get_serializer_class(self):

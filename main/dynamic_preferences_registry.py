@@ -41,16 +41,6 @@ class TitleHeader(types.LongStringPreference):
     default = ''
 
 ###############################################################################
-# Webhook section
-
-@global_preferences_registry.register
-class WebhookCalloutCreated(types.StringPreference):
-    section = webhook
-    name = 'callout_created'
-    verbose_name = 'Webhook triggered on new callout'
-    default = ''
-
-###############################################################################
 # Google section
 
 @global_preferences_registry.register

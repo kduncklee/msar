@@ -2,7 +2,7 @@
 #
 # If you add a model to a file in this directory, import it here.
 
-from .base import BaseModel, BasePositionModel, Configuration
+from .base import BaseModel, BasePositionModel, Configuration, Webhook
 from .member import MemberStatusType, Member, Role, Phone, Email, Address, EmergencyContact, OtherInfo, Unavailable, DoAvailable
 from .cert import Cert, CertType, CertSubType, DisplayCert
 from .event import EventNotificationsAvailable, Event, OperationTypesAvailable, Period, Participant, Patrol, RadioChannelsAvailable
