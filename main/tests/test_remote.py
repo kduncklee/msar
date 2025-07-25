@@ -27,6 +27,7 @@ class TestApi(MemberTestMixin, APITestCase):
             lon=-118,
         )
         self.event_json = CalloutDetailSerializer(source_event).data
+        self.event_json['notifications_made'] = ['does_not_exist']
         source_event.delete()
         # print(str(self.event_json))
         return self.event_json

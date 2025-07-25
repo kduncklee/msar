@@ -38,6 +38,8 @@ class AbstractRemoteView(APIView):
 class AbstractRemoteCalloutView(AbstractRemoteView):
     def get_or_create_callout(self, server, data):
         remote_event_id = data.get('id') # not in deserialized data
+        data.pop('additional_radio_channels', None)
+        data.pop('notifications_made', None)
         try:
             mapping = RemoteMapping.objects.get(remote_event_id=remote_event_id)
             event = mapping.event
@@ -52,8 +54,6 @@ class AbstractRemoteCalloutView(AbstractRemoteView):
             remote_event_id = data.get('id') # not in deserialized data
             logger.info('{}: {}'.format(remote_event_id, callout.items()))
             callout['title'] = '[{}] {}'.format(server.name, callout.get('title'))
-            callout.pop('additional_radio_channels', None)
-            callout.pop('notifications_made', None)
 
             event = callout_serializer.save()
             if not mapping:
