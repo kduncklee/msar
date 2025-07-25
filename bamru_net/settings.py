@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'oidc_provider',
     'raven.contrib.django.raven_compat',
     'rest_framework',
+    'rest_framework_api_key',
     'rest_framework.authtoken',
     'rules.apps.AutodiscoverRulesConfig',
     'simple_history',

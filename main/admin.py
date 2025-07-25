@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from fcm_django.models import FCMDevice
 from fcm_django.admin import DeviceAdmin as FCMDeviceAdmin
+from rest_framework_api_key.models import APIKey
+from rest_framework_api_key.admin import APIKeyModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 from .models import *
 from .lib import push
@@ -163,6 +165,19 @@ class DataFileAdmin(admin.ModelAdmin):
 class MemberPhotoAdmin(admin.ModelAdmin):
     list_display = ('name', 'file', 'created_at', 'member')
     search_fields = ['member',]
+
+@admin.register(Webhook)
+class WebhookAdmin(admin.ModelAdmin):
+    list_display = ('hook','url')
+
+@admin.register(RemoteServer)
+class RemoteServerAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+
+admin.site.unregister(APIKey)
+@admin.register(RemoteServerAPIKey)
+class RemoteServerAPIKeyModelAdmin(APIKeyModelAdmin):
+    pass
 
 # Documents
 @admin.register(DocumentTemplate)

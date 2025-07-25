@@ -136,6 +136,11 @@ urlpatterns = [
     path('webhooks/sms_callback/', views.sms_callback, name='sms_callback'),
     path('webhooks/sms/', views.sms, name='sms'),
 
+    path('remote/server/', views.ServerTestView.as_view(), name='remote_server'),
+    path('remote/callout-created/', views.RemoteCalloutCreatedView.as_view(), name='remote_created'),
+    path('remote/callout-log/', views.RemoteCalloutLogView.as_view(), name='remote_log'),
+    path('remote/callout-resolved/', views.RemoteCalloutResolvedView.as_view(), name='remote_resolved'),
+
     re_path(r'^api/', include((router.urls, 'api'))),
     re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api-token-auth/', rest_framework.authtoken.views.obtain_auth_token),

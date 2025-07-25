@@ -40,9 +40,15 @@ class AccessTestCase(MemberTestMixin, TestCase):
             '/event/',
         ]
         self.all_urls = self.user_urls + self.desk_urls + self.event_urls
+        self.remote_urls = [ # need API key for any user
+            'remote/server/',
+            'remote/callout-created/',
+            'remote/callout-log/',
+            'remote/callout-resolved/',
+        ]
 
     def test_not_logged_in(self):
-        for url in self.all_urls:
+        for url in self.all_urls + self.remote_urls:
             response = self.client.get(url)
             self.assertIn(response.status_code, [302,404], url)
 

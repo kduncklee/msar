@@ -9,3 +9,4 @@ from .event import EventNotificationsAvailable, Event, OperationTypesAvailable, 
 from .message import RsvpTemplate, Message, Distribution, OutboundSms, InboundSms, OutboundEmail, CalloutResponseOption, CalloutResponse, CalloutLog
 from .file import DataFile, MemberPhoto
 from .documents import Aar, AhcLog, DocumentTemplate, DoLog, LogisticsSpreadsheet
+from .remote import RemoteMapping, RemoteServer, RemoteServerAPIKey

@@ -58,7 +58,7 @@ class Configuration(BaseModel):
         else:
             return None
 
-class Webhook(BaseModel):
+class Webhook(BaseModel): # Outgoing webhooks
     HOOK_TYPES = (
         ('callout_created', 'Callout Created'),
         ('callout_resolved', 'Callout Resolved'),

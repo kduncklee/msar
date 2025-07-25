@@ -550,6 +550,30 @@ class CalloutDetailSerializer(CalloutListSerializer):
             return latest.created_at
         return None
 
+    def create(self, validated_data):
+        return Event.objects.create(
+            **validated_data,
+            type='operation')
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.operation_type = validated_data.get('operation_type', instance.operation_type)
+        instance.description = validated_data.get('description', instance.description)
+        instance.subject = validated_data.get('subject', instance.subject)
+        instance.subject_contact = validated_data.get('subject_contact', instance.subject_contact)
+        instance.informant = validated_data.get('informant', instance.informant)
+        instance.informant_contact = validated_data.get('informant_contact', instance.informant_contact)
+        instance.handling_unit = validated_data.get('handling_unit', instance.handling_unit)
+        #instance.notifications_made = validated_data.get('notifications_made', instance.notifications_made) # FK
+        instance.radio_channel = validated_data.get('radio_channel', instance.radio_channel)
+        #instance.additional_radio_channels = validated_data.get('additional_radio_channels', instance.additional_radio_channels) # FK
+        instance.status = validated_data.get('status', instance.status)
+        instance.resolution = validated_data.get('resolution', instance.resolution)
+        instance.location = validated_data.get('location', instance.location) #
+        instance.save()
+        return instance
+
+
 
 class CalloutLogSerializer(serializers.ModelSerializer):
     member = CalloutMemberSerializer(required=False)
