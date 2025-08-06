@@ -1,7 +1,7 @@
 from django.test.utils import override_settings
 from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
-from main.models import CalloutResponseOption, Member, MemberStatusType, OperationTypesAvailable, Participant
+from main.models import CalloutResponseOption, EventNotificationsAvailable, Member, MemberStatusType, OperationTypesAvailable, Participant
 from main.tests.test_member import MemberTestMixin
 from unittest.mock import patch
 
@@ -22,6 +22,7 @@ class TestApi(MemberTestMixin, APITestCase):
             last_name='Status',
             username='r99',
         )
+        EventNotificationsAvailable.objects.get_or_create(name='SP')
         OperationTypesAvailable.objects.get_or_create(name='rescue')
         CalloutResponseOption.objects.get_or_create(
             response='10-8', is_attending=True)
@@ -108,12 +109,15 @@ class TestApi(MemberTestMixin, APITestCase):
              'operation_type':'rescue',
              'description': DESC,
              'status': 'active',
+             'notifications_made': ['SP'],
              }, format='json')
         self.assertEqual(response.status_code, 201)
-        mock_send_push_message.assert_called_once()
-        kwargs = mock_send_push_message.call_args.kwargs
+        self.assertEqual(mock_send_push_message.call_count, 2)
+        kwargs = mock_send_push_message.call_args_list[0].kwargs
         self.assertEqual(kwargs['title'], 'New Callout')
         self.assertCountEqual(kwargs['member_ids'], AVAILABLE_IDS)
+        kwargs = mock_send_push_message.call_args_list[1].kwargs
+        self.assertEqual(kwargs['title'], 'Callout updated - john doe')
         mock_send_push_message.reset_mock()
         cid = response.data.get('id')
         self._check_event_data(data=response.data, title=TITLE, description=DESC)
@@ -133,9 +137,9 @@ class TestApi(MemberTestMixin, APITestCase):
         response = self.client.get('{}callouts/{}/log/'.format(self.uri, cid))
         self.assertEqual(response.status_code, 200)
         logs = response.data.get('results')
-        self.assertEqual(len(logs), 1)
-        self.assertEqual(logs[0].get('type'), 'message')
-        self.assertEqual(logs[0].get('message'), 'testing')
+        self.assertEqual(len(logs), 2)
+        self.assertEqual(logs[1].get('type'), 'message')
+        self.assertEqual(logs[1].get('message'), 'testing')
 
         # Check negative response
         response = self.client.post('{}callouts/{}/respond/'.format(self.uri, cid),
