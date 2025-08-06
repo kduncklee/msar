@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework_api_key.models import APIKey
 from rest_framework_api_key.permissions import BaseHasAPIKey
 
-from main.models import CalloutLog, Event, RemoteMapping, RemoteServer, RemoteServerAPIKey
+from main.models import CalloutLog, Event, EventNotificationsAvailable, OperationTypesAvailable, RadioChannelsAvailable, RemoteMapping, RemoteServer, RemoteServerAPIKey
 from main.serializers import CalloutDetailSerializer, CalloutLogSerializer
 
 import logging
@@ -38,8 +38,12 @@ class AbstractRemoteView(APIView):
 class AbstractRemoteCalloutView(AbstractRemoteView):
     def get_or_create_callout(self, server, data):
         remote_event_id = data.get('id') # not in deserialized data
-        data.pop('additional_radio_channels', None)
-        data.pop('notifications_made', None)
+        for a in data.get('additional_radio_channels', []):
+            RadioChannelsAvailable.objects.get_or_create(name=a)
+        for n in data.get('notifications_made', []):
+            logger.info('n: {}'.format(n))
+            EventNotificationsAvailable.objects.get_or_create(name=n)
+        OperationTypesAvailable.objects.get_or_create(name=data.get('operation_type'))
         try:
             mapping = RemoteMapping.objects.get(remote_event_id=remote_event_id)
             event = mapping.event
@@ -51,7 +55,6 @@ class AbstractRemoteCalloutView(AbstractRemoteView):
             if not callout_serializer.is_valid():
                 logger.error(callout_serializer.errors)
             callout = callout_serializer.validated_data
-            remote_event_id = data.get('id') # not in deserialized data
             logger.info('{}: {}'.format(remote_event_id, callout.items()))
             callout['title'] = '[{}] {}'.format(server.name, callout.get('title'))
 
