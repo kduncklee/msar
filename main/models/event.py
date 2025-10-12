@@ -104,6 +104,11 @@ class Event(BaseModel):
             else:
                 if old.status == 'active':
                     self.finish_at = timezone.now()
+        if self.location_address:  # TODO FIXME: temp workaround for 1.18.0 bug
+            if not self.lat:
+                self.lat = '1'
+            if not self.lon:
+                self.lon = '1'
         super(Event, self).save(*args, **kwargs)
         self.add_period(True)
 
