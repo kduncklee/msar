@@ -179,7 +179,7 @@ class CertListView(PermissionRequiredMixin, MemberStatusTypeMixin, generic.Templ
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['cert_types'] = CertType.display_cert_types
+        context['cert_types'] = CertType.display_cert_types()
         return context
 
 class CertBulkCreateMemberView(CertListView):

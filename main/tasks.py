@@ -15,8 +15,8 @@ from .models import Cert, Distribution, DoLog, Event, Member, Message, OutboundE
 
 logger = logging.getLogger(__name__)
 
-from opentelemetry import trace
-tracer = trace.get_tracer(__name__)
+# from opentelemetry import trace
+# tracer = trace.get_tracer(__name__)
 
 
 # @shared_task
@@ -26,13 +26,13 @@ def debug_print(text):
     return response
 
 # @shared_task
-@tracer.start_as_current_span("task_http_get")
+# @tracer.start_as_current_span("task_http_get")
 def http_get(url):
     """Can be used to poll a health check URL."""
     return urllib.request.urlopen(url).read()
 
 # @shared_task
-@tracer.start_as_current_span("message_send")
+# @tracer.start_as_current_span("message_send")
 def message_send(message_id):
     """Task to actually do the message sending.
 
@@ -152,12 +152,12 @@ def event_create_logistics_spreadsheet(event_id):
     Event.objects.get(id=event_id).create_logistics_spreadsheet()
 
 # @shared_task
-@tracer.start_as_current_span("member_update_all_google_profiles")
+# @tracer.start_as_current_span("member_update_all_google_profiles")
 def member_update_all_google_profiles():
     [x.update_google_profile() for x in Member.objects.all()]
 
 # @shared_task
-@tracer.start_as_current_span("member_update_all_profile_emails")
+# @tracer.start_as_current_span("member_update_all_profile_emails")
 def member_update_all_profile_emails():
     [x.profile_email_to_email_set() for x in Member.objects.all()]
 

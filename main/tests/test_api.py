@@ -131,7 +131,7 @@ class TestApi(MemberTestMixin, APITestCase):
         mock_send_push_message.assert_called_once()
         kwargs = mock_send_push_message.call_args.kwargs
         self.assertEqual(kwargs['title'], 'Callout log - john doe')
-        self.assertRegexpMatches(kwargs['body'], 'testing')
+        self.assertRegex(kwargs['body'], 'testing')
         self.assertCountEqual(kwargs['member_ids'], [self.other_user.id, self.available_member.id])
         mock_send_push_message.reset_mock()
         response = self.client.get('{}callouts/{}/log/'.format(self.uri, cid))
@@ -191,7 +191,7 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertCountEqual(kwargs['member_ids'], AVAILABLE_IDS)
         kwargs = mock_send_push_message.call_args_list[1].kwargs
         self.assertEqual(kwargs['title'], 'Callout updated - john doe')
-        self.assertRegexpMatches(kwargs['body'], 'status')
+        self.assertRegex(kwargs['body'], 'status')
         self.assertEqual(kwargs['member_ids'], [self.other_user.id, self.available_member.id])
         mock_send_push_message.reset_mock()
 
@@ -206,7 +206,7 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertCountEqual(kwargs['member_ids'], AVAILABLE_IDS)
         kwargs = mock_send_push_message.call_args_list[1].kwargs
         self.assertEqual(kwargs['title'], 'Callout updated - john doe')
-        self.assertRegexpMatches(kwargs['body'], 'status')
+        self.assertRegex(kwargs['body'], 'status')
         self.assertEqual(kwargs['member_ids'], [self.other_user.id, self.available_member.id])
         mock_send_push_message.reset_mock()
 
@@ -238,7 +238,7 @@ class TestApi(MemberTestMixin, APITestCase):
         mock_send_push_message.assert_called_once()
         kwargs = mock_send_push_message.call_args.kwargs
         self.assertEqual(kwargs['title'], 'Callout log - desk')
-        self.assertRegexpMatches(kwargs['body'], 'more testing')
+        self.assertRegex(kwargs['body'], 'more testing')
         self.assertCountEqual(kwargs['member_ids'], AVAILABLE_IDS)
         mock_send_push_message.reset_mock()
 
