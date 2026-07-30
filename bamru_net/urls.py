@@ -22,8 +22,7 @@ from django.urls import include, path, re_path
 from main import views
 
 import rest_framework.authtoken.views
-#from rest_framework import routers
-from rest_framework.documentation import include_docs_urls
+from rest_framework.schemas import get_schema_view
 from rest_framework_extensions import routers
 
 router = routers.ExtendedDefaultRouter()
@@ -145,7 +144,11 @@ urlpatterns = [
     re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api-token-auth/', rest_framework.authtoken.views.obtain_auth_token),
 
-    re_path(r'^api-docs/', include_docs_urls(title='BAMRU API')),
+    path('openapi/', get_schema_view(
+        title="Project API",
+        description="API schema description",
+        version="1.0.0"
+    ), name='openapi-schema'),
 
     path('admin/', admin.site.urls),
 
