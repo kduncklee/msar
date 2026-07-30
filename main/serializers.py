@@ -35,6 +35,14 @@ class WriteOnceMixin:
         return extra_kwargs
 
 
+class WritableSlugRelatedField(serializers.SlugRelatedField):
+    def to_internal_value(self, data):
+        # Return or create the object directly during DRF's validation phase
+        obj, created = self.get_queryset().get_or_create(
+            **{self.slug_field: data})
+        return obj
+
+
 class CreatePermModelSerializer(serializers.ModelSerializer):
     """Check object permissions on create."""
     def create(self, validated_data):
@@ -535,7 +543,7 @@ class CalloutDetailSerializer(CalloutListSerializer):
         queryset=EventNotificationsAvailable.objects.all(),
         slug_field='name',
         required=False)
-    additional_radio_channels = serializers.SlugRelatedField(
+    additional_radio_channels = WritableSlugRelatedField(
         many=True,
         queryset=RadioChannelsAvailable.objects.all(),
         slug_field='name',
@@ -563,7 +571,6 @@ class CalloutDetailSerializer(CalloutListSerializer):
         if latest is not None:
             return latest.created_at
         return None
-
 
 
 class CalloutLogSerializer(serializers.ModelSerializer):

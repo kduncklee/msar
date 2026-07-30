@@ -22,8 +22,8 @@ class EventNotificationsAvailable(BasePositionModel):
 
 class RadioChannelsAvailable(BasePositionModel):
     name = models.CharField(max_length=255)
-    is_primary = models.BooleanField(default=True)
-    is_additional = models.BooleanField(default=True)
+    is_primary = models.BooleanField(default=False)
+    is_additional = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
