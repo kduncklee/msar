@@ -85,6 +85,7 @@ requests==2.31.0
 rsa==4.9
 rules==3.3
 six==1.16.0
+setuptools<=80.10.2
 social-auth-app-django==5.4.0
 social-auth-core==4.4.2
 soupsieve==2.3.2.post1
