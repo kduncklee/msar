@@ -247,9 +247,6 @@ class PatrolViewSet(CreateListModelMixin, BaseViewSet):
     serializer_class = PatrolSerializer
     filterset_class = PatrolFilter
 
-    def perform_create(self, serializer):
-        serializer.save(member_id=self.request.user.id)
-
 
 class DoViewSet(BaseViewSet):
     queryset = DoAvailable.objects.all().order_by('week')

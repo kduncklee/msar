@@ -249,7 +249,7 @@ class PeriodParticipantSerializer(serializers.ModelSerializer):
 
 
 class PatrolSerializer(serializers.ModelSerializer):
-    member = ParticipantMemberSerializer(required=False)
+    member = ParticipantMemberSerializer(required=False, read_only=True)
     color = serializers.SerializerMethodField()
     class Meta:
         model = Patrol
@@ -257,6 +257,20 @@ class PatrolSerializer(serializers.ModelSerializer):
 
     def get_color(self, patrol):
         return patrol.member.status_color
+
+    def create(self, validated_data):
+        # default to current user
+        member_id=self.context['request'].user.id
+
+        # Remove validate member data so DRF doesn't try to update child.
+        validated_data.pop('member', [])
+
+        # Get the raw data so we get the originally submitted id.
+        member_data = self.initial_data.get('member', [])
+        if member_data:
+            member_id = member_data.get('id')
+        patrol = Patrol.objects.create(member_id=member_id, **validated_data)
+        return patrol
 
 
 class DistributionSerializer(serializers.ModelSerializer):
