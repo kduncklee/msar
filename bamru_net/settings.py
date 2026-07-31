@@ -12,11 +12,20 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 import raven
-from distutils.util import strtobool
 from firebase_admin import initialize_app
 
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
+
+# Replacement for version previously in distutils.util
+def strtobool(val: str) -> bool:
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f"Invalid truth value for {val!r}.")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
