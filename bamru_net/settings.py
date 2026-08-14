@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-import raven
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 from firebase_admin import initialize_app
 
 from dotenv import load_dotenv, find_dotenv
@@ -63,7 +64,6 @@ INSTALLED_APPS = [
     "fcm_django",
     'imagekit',
     'oidc_provider',
-    'raven.contrib.django.raven_compat',
     'rest_framework',
     'rest_framework_api_key',
     'rest_framework.authtoken',
@@ -259,12 +259,30 @@ OIDC_USERINFO = 'main.oidc_provider_settings.userinfo'
 # Raven config for Sentry.io logging
 RELEASE = os.environ.get('GIT_SHA', '0') # TODO raven.fetch_git_sha(os.path.abspath(BASE_DIR))
 if strtobool(os.environ.get('USE_RAVEN', 'False')):
-    RAVEN_CONFIG = {
-        'dsn': os.environ['RAVEN_DSN'],
-        # If you are using git, you can also automatically configure the
-        # release based on the git info.
-        'release': RELEASE,
-    }
+    sentry_sdk.init(
+        dsn=os.environ['RAVEN_DSN'],
+        release=RELEASE,
+
+        # Enable logs to be sent to Sentry
+        enable_logs=True,
+
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for Tracing.
+        # We recommend adjusting this value in production,
+        traces_sample_rate=1.0,
+
+        # Add data like request headers and IP for users;
+        # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+        send_default_pii=True,
+
+        integrations=[
+            DjangoIntegration(
+                middleware_spans=True,
+                signals_spans=True,
+                cache_spans=True,
+            ),
+        ],
+    )
 JAVASCRIPT_DSN = os.environ.get('JAVASCRIPT_DSN','')
 
 TWILIO_SMS_FROM = [e.strip() for e in os.environ['TWILIO_SMS_FROM'].split(',')]
@@ -320,7 +338,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'root': {
-        'handlers': ['sentry', 'file'],
+        'handlers': ['file'],
     },
     'formatters': {
         'verbose': {
@@ -338,10 +356,6 @@ LOGGING = {
             'maxBytes': 10 * 1024 * 1024,  # 10 MB
             'backupCount': 90,
         },
-        'sentry': {
-            'level': 'WARNING',
-            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -355,16 +369,6 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
-        'raven': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'sentry.errors': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            'propagate': False,
-        },
         'opentelemetry': {
             'level': 'ERROR',
             'handlers': ['console'],
@@ -375,7 +379,7 @@ LOGGING = {
         # Project logging
         'main': {
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            'handlers': ['console', 'sentry', 'file'],
+            'handlers': ['console', 'file'],
             'propagate': False,
         },
     },
