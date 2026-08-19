@@ -280,6 +280,14 @@ class PatrolSerializer(serializers.ModelSerializer):
         patrol = Patrol.objects.create(member_id=member_id, **validated_data)
         return patrol
 
+    def update(self, instance, validated_data):
+        validated_data.pop('member', [])
+        member_data = self.initial_data.get('member', [])
+        if member_data:
+            member_id = member_data.get('id')
+            instance.member_id = member_id
+        return super().update(instance, validated_data)
+
 
 class DistributionSerializer(serializers.ModelSerializer):
     class Meta:
