@@ -118,6 +118,12 @@ for model in ['announcement', ]:
     rules.add_perm('main.add_%s' % model, is_current_member)
     rules.add_perm('main.view_%s' % model, is_current_member)
 
+for model in ['accesscode', ]:
+    rules.add_perm('main.add_%s' % model, is_current_member)
+    rules.add_perm('main.view_%s' % model, is_current_member)
+    rules.add_perm('main.change_%s' % model, is_current_member)
+    rules.add_perm('main.delete_%s' % model, is_current_member)
+
 rules.add_perm('main.desk', is_current_member | is_desk)
 
 # Read-only configurations

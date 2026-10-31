@@ -1,7 +1,8 @@
 from django.test.utils import override_settings
 from django.urls import reverse
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
-from main.models import CalloutResponseOption, EventNotificationsAvailable, Member, MemberStatusType, OperationTypesAvailable, Participant
+from main.models import AccessCode, CalloutResponseOption, EventNotificationsAvailable, Member, MemberStatusType, OperationTypesAvailable, Participant
 from main.tests.test_member import MemberTestMixin
 from unittest.mock import patch
 
@@ -28,7 +29,7 @@ class TestApi(MemberTestMixin, APITestCase):
             response='10-8', is_attending=True)
         CalloutResponseOption.objects.get_or_create(
             response='10-7', is_attending=False)
-        self.member_urls = ['/api/announcement/log/']
+        self.member_urls = ['/api/announcement/log/', '/api/access_codes/']
         self.callout_urls = ['/api/callouts/']
         self.all_urls = self.member_urls + self.callout_urls
 
@@ -250,3 +251,69 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get('{}callouts/{}/log/'.format(self.uri, cid))
         self.assertEqual(response.status_code, 200)
+
+    def test_access_codes_crud(self):
+        token, _ = Token.objects.get_or_create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+
+        # Initial GET -> empty list
+        response = self.client.get(self.uri + 'access_codes/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
+
+        # POST create
+        create_payload = {
+            'name': 'Gate 4 Trailhead',
+            'code': '4821#',
+            'keywords': 'gate, water tower, north',
+            'latitude': 34.025910,
+            'longitude': -118.779760,
+        }
+        response = self.client.post(self.uri + 'access_codes/', create_payload, format='json')
+        self.assertEqual(response.status_code, 201)
+        created = response.json()
+        acid = created['id']
+        self.assertEqual(created['name'], 'Gate 4 Trailhead')
+        self.assertEqual(created['code'], '4821#')
+        self.assertEqual(created['keywords'], 'gate, water tower, north')
+        self.assertAlmostEqual(created['latitude'], 34.025910)
+        self.assertAlmostEqual(created['longitude'], -118.779760)
+        self.assertIn('created_at', created)
+        self.assertIn('updated_at', created)
+
+        # GET list
+        response = self.client.get(self.uri + 'access_codes/')
+        self.assertEqual(response.status_code, 200)
+        items = response.json()
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]['id'], acid)
+
+        # PUT update
+        update_payload = {
+            'id': acid,
+            'name': 'Gate 4 Trailhead - Main',
+            'code': '4821#',
+            'keywords': 'gate, water tower, north',
+            'latitude': 34.025910,
+            'longitude': -118.779760,
+        }
+        response = self.client.put(
+            f'{self.uri}access_codes/{acid}/', update_payload, format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['name'], 'Gate 4 Trailhead - Main')
+
+        # Non-current member is forbidden (403)
+        non_current_token, _ = Token.objects.get_or_create(user=self.available_member)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + non_current_token.key)
+        self.assertEqual(self.client.get(self.uri + 'access_codes/').status_code, 403)
+        self.assertEqual(self.client.post(self.uri + 'access_codes/', create_payload, format='json').status_code, 403)
+        self.assertEqual(self.client.put(f'{self.uri}access_codes/{acid}/', update_payload, format='json').status_code, 403)
+        self.assertEqual(self.client.delete(f'{self.uri}access_codes/{acid}/').status_code, 403)
+
+        # DELETE as current member
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = self.client.delete(f'{self.uri}access_codes/{acid}/')
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(AccessCode.objects.count(), 0)
+

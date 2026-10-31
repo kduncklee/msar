@@ -589,3 +589,13 @@ class CalloutLogSerializer(serializers.ModelSerializer):
         model = CalloutLog
         read_only_fields = ('created_at',)
         fields = ('id', 'type', 'event', 'member', 'message', 'location', 'update') + read_only_fields
+
+
+class AccessCodeSerializer(serializers.ModelSerializer):
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, coerce_to_string=False)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, coerce_to_string=False)
+
+    class Meta:
+        model = AccessCode
+        fields = '__all__'
+

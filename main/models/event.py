@@ -232,3 +232,18 @@ class Patrol(BaseModel):
 
     def __str__(self):
         return '{} - {}'.format(self.start_at.strftime('%Y-%m-%d'), self.member.username)
+
+
+class AccessCode(BaseModel):
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=255)  # Access code value (e.g. "4821#", "Keybox 2")
+    keywords = models.TextField(blank=True, null=True)  # Optional search keywords
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+
+    class Meta:
+        ordering = ['-id']
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+

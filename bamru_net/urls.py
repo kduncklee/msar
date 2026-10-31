@@ -48,6 +48,7 @@ router.register(r'callout_responses', views.CalloutResponseOptionViewSet, basena
 callouts_router = router.register(r'callouts', views.CalloutViewSet, basename='callout')
 callouts_router.register(r'log', views.CalloutLogViewSet, basename='callout-log', parents_query_lookups=['event'])
 router.register(r'announcement/log', views.AnnouncementLogViewSet, basename='announcemnt-log')
+router.register(r'access_codes', views.AccessCodeViewSet, basename='access_codes')
 router.register('devices', views.FCMDeviceAuthorizedViewSet)
 
 

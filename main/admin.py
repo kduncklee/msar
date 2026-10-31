@@ -93,6 +93,12 @@ class PatrolAdmin(SimpleHistoryAdmin):
     list_display = ('member', 'start_at',)
 
 
+@admin.register(AccessCode)
+class AccessCodeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'keywords', 'latitude', 'longitude', 'updated_at')
+    search_fields = ('name', 'code', 'keywords')
+
+
 @admin.register(EventNotificationsAvailable)
 class EventNotificationsAvailableAdmin(admin.ModelAdmin):
     list_display = ('name',)
