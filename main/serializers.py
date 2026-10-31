@@ -591,11 +591,49 @@ class CalloutLogSerializer(serializers.ModelSerializer):
         fields = ('id', 'type', 'event', 'member', 'message', 'location', 'update') + read_only_fields
 
 
-class AccessCodeSerializer(serializers.ModelSerializer):
+class AccessCodeLocationSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
     latitude = serializers.DecimalField(max_digits=9, decimal_places=6, coerce_to_string=False)
     longitude = serializers.DecimalField(max_digits=9, decimal_places=6, coerce_to_string=False)
 
     class Meta:
+        model = AccessCodeLocation
+        fields = ['id', 'latitude', 'longitude', 'label']
+
+
+class AccessCodeSerializer(serializers.ModelSerializer):
+    locations = AccessCodeLocationSerializer(many=True, required=False)
+
+    class Meta:
         model = AccessCode
-        fields = '__all__'
+        fields = ['id', 'name', 'code', 'keywords', 'locations', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        locations_data = validated_data.pop('locations', [])
+        access_code = AccessCode.objects.create(**validated_data)
+
+        for loc_data in locations_data:
+            loc_data.pop('id', None)
+            AccessCodeLocation.objects.create(access_code=access_code, **loc_data)
+
+        return access_code
+
+    def update(self, instance, validated_data):
+        locations_data = validated_data.pop('locations', None)
+
+        # Update scalar fields
+        instance.name = validated_data.get('name', instance.name)
+        instance.code = validated_data.get('code', instance.code)
+        instance.keywords = validated_data.get('keywords', instance.keywords)
+        instance.save()
+
+        # Update nested locations if provided
+        if locations_data is not None:
+            # Delete existing locations not in payload, then create/update
+            instance.locations.all().delete()
+            for loc_data in locations_data:
+                loc_data.pop('id', None)
+                AccessCodeLocation.objects.create(access_code=instance, **loc_data)
+
+        return instance
 

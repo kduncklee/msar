@@ -481,7 +481,7 @@ class AnnouncementLogViewSet(CalloutLogViewSet):
 
 
 class AccessCodeViewSet(BaseViewSet):
-    queryset = AccessCode.objects.all().order_by('-id')
+    queryset = AccessCode.objects.prefetch_related('locations').all().order_by('-id')
     serializer_class = AccessCodeSerializer
     authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
     pagination_class = None

@@ -261,13 +261,23 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), [])
 
-        # POST create
+        # POST create with multiple locations
         create_payload = {
             'name': 'Gate 4 Trailhead',
             'code': '4821#',
             'keywords': 'gate, water tower, north',
-            'latitude': 34.025910,
-            'longitude': -118.779760,
+            'locations': [
+                {
+                    'latitude': 34.025910,
+                    'longitude': -118.779760,
+                    'label': 'North Gate',
+                },
+                {
+                    'latitude': 34.032110,
+                    'longitude': -118.784510,
+                    'label': 'Helipad',
+                },
+            ],
         }
         response = self.client.post(self.uri + 'access_codes/', create_payload, format='json')
         self.assertEqual(response.status_code, 201)
@@ -276,32 +286,59 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(created['name'], 'Gate 4 Trailhead')
         self.assertEqual(created['code'], '4821#')
         self.assertEqual(created['keywords'], 'gate, water tower, north')
-        self.assertAlmostEqual(created['latitude'], 34.025910)
-        self.assertAlmostEqual(created['longitude'], -118.779760)
+        self.assertEqual(len(created['locations']), 2)
+        self.assertAlmostEqual(created['locations'][0]['latitude'], 34.025910)
+        self.assertAlmostEqual(created['locations'][0]['longitude'], -118.779760)
+        self.assertEqual(created['locations'][0]['label'], 'North Gate')
+        self.assertAlmostEqual(created['locations'][1]['latitude'], 34.032110)
+        self.assertAlmostEqual(created['locations'][1]['longitude'], -118.784510)
+        self.assertEqual(created['locations'][1]['label'], 'Helipad')
         self.assertIn('created_at', created)
         self.assertIn('updated_at', created)
+
+        # POST create with zero locations
+        empty_loc_payload = {
+            'name': 'Command Post Keybox',
+            'code': '1999',
+            'keywords': 'hq',
+            'locations': [],
+        }
+        response2 = self.client.post(self.uri + 'access_codes/', empty_loc_payload, format='json')
+        self.assertEqual(response2.status_code, 201)
+        self.assertEqual(response2.json()['locations'], [])
+        acid2 = response2.json()['id']
 
         # GET list
         response = self.client.get(self.uri + 'access_codes/')
         self.assertEqual(response.status_code, 200)
         items = response.json()
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0]['id'], acid)
+        self.assertEqual(len(items), 2)
+        self.assertEqual(items[0]['id'], acid2)
+        self.assertEqual(items[1]['id'], acid)
 
-        # PUT update
+        # PUT update (modifying scalar fields and replacing locations)
         update_payload = {
             'id': acid,
             'name': 'Gate 4 Trailhead - Main',
             'code': '4821#',
             'keywords': 'gate, water tower, north',
-            'latitude': 34.025910,
-            'longitude': -118.779760,
+            'locations': [
+                {
+                    'id': created['locations'][0]['id'],
+                    'latitude': 34.025910,
+                    'longitude': -118.779760,
+                    'label': 'Updated North Gate',
+                }
+            ],
         }
         response = self.client.put(
             f'{self.uri}access_codes/{acid}/', update_payload, format='json'
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['name'], 'Gate 4 Trailhead - Main')
+        updated = response.json()
+        self.assertEqual(updated['name'], 'Gate 4 Trailhead - Main')
+        self.assertEqual(len(updated['locations']), 1)
+        self.assertEqual(updated['locations'][0]['label'], 'Updated North Gate')
 
         # Non-current member is forbidden (403)
         non_current_token, _ = Token.objects.get_or_create(user=self.available_member)
@@ -315,5 +352,6 @@ class TestApi(MemberTestMixin, APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
         response = self.client.delete(f'{self.uri}access_codes/{acid}/')
         self.assertEqual(response.status_code, 204)
+        self.client.delete(f'{self.uri}access_codes/{acid2}/')
         self.assertEqual(AccessCode.objects.count(), 0)
 

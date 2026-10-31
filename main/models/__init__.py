@@ -5,7 +5,7 @@
 from .base import BaseModel, BasePositionModel, Configuration, Webhook
 from .member import MemberStatusType, Member, Role, Phone, Email, Address, EmergencyContact, OtherInfo, Unavailable, DoAvailable
 from .cert import Cert, CertType, CertSubType, DisplayCert
-from .event import EventNotificationsAvailable, Event, OperationTypesAvailable, Period, Participant, Patrol, RadioChannelsAvailable, AccessCode
+from .event import EventNotificationsAvailable, Event, OperationTypesAvailable, Period, Participant, Patrol, RadioChannelsAvailable, AccessCode, AccessCodeLocation
 from .message import RsvpTemplate, Message, Distribution, OutboundSms, InboundSms, OutboundEmail, CalloutResponseOption, CalloutResponse, CalloutLog
 from .file import DataFile, MemberPhoto
 from .documents import Aar, AhcLog, DocumentTemplate, DoLog, LogisticsSpreadsheet
