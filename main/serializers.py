@@ -589,3 +589,13 @@ class CalloutLogSerializer(serializers.ModelSerializer):
         model = CalloutLog
         read_only_fields = ('created_at',)
         fields = ('id', 'type', 'event', 'member', 'message', 'location', 'update') + read_only_fields
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        event = attrs.get('event')
+        message = attrs.get('message')
+        key = attrs.get('key')
+
+        if key and CalloutLog.objects.filter(member=user, event=event, message=message, key=key).exists():
+            raise ValidationError({"detail": "duplicate log message."})
+        return attrs
