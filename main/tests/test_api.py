@@ -268,8 +268,8 @@ class TestApi(MemberTestMixin, APITestCase):
             'keywords': 'gate, water tower, north',
             'locations': [
                 {
-                    'latitude': 34.025910,
-                    'longitude': -118.779760,
+                    'latitude': 34.02591048291,
+                    'longitude': -118.77976083746,
                     'label': 'North Gate',
                 },
                 {
@@ -288,7 +288,7 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(created['keywords'], 'gate, water tower, north')
         self.assertEqual(len(created['locations']), 2)
         self.assertAlmostEqual(created['locations'][0]['latitude'], 34.025910)
-        self.assertAlmostEqual(created['locations'][0]['longitude'], -118.779760)
+        self.assertAlmostEqual(created['locations'][0]['longitude'], -118.779761)
         self.assertEqual(created['locations'][0]['label'], 'North Gate')
         self.assertAlmostEqual(created['locations'][1]['latitude'], 34.032110)
         self.assertAlmostEqual(created['locations'][1]['longitude'], -118.784510)

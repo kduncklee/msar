@@ -591,10 +591,17 @@ class CalloutLogSerializer(serializers.ModelSerializer):
         fields = ('id', 'type', 'event', 'member', 'message', 'location', 'update') + read_only_fields
 
 
+class RoundedDecimalField(serializers.DecimalField):
+    def validate_precision(self, value):
+        if self.decimal_places is not None:
+            value = round(value, self.decimal_places)
+        return super().validate_precision(value)
+
+
 class AccessCodeLocationSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
-    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, coerce_to_string=False)
-    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, coerce_to_string=False)
+    latitude = RoundedDecimalField(max_digits=9, decimal_places=6, coerce_to_string=False)
+    longitude = RoundedDecimalField(max_digits=9, decimal_places=6, coerce_to_string=False)
 
     class Meta:
         model = AccessCodeLocation
