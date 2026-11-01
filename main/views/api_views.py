@@ -6,7 +6,6 @@ from django import forms
 from django.db.models import Count, Max, Prefetch
 from django.http import FileResponse
 from rest_framework import exceptions, generics, mixins, parsers, permissions, response, serializers, views, viewsets, renderers
-from rest_framework.authentication import TokenAuthentication, SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -483,7 +482,6 @@ class AnnouncementLogViewSet(CalloutLogViewSet):
 class AccessCodeViewSet(BaseViewSet):
     queryset = AccessCode.objects.prefetch_related('locations').all().order_by('-id')
     serializer_class = AccessCodeSerializer
-    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
     pagination_class = None
     ordering = ['-id']
 
