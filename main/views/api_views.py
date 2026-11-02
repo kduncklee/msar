@@ -477,3 +477,11 @@ class AnnouncementLogViewSet(CalloutLogViewSet):
 
     def perform_create(self, serializer):
         serializer.save(member_id=self.request.user.id, event=None)
+
+
+class AccessCodeViewSet(BaseViewSet):
+    queryset = AccessCode.objects.prefetch_related('locations').all().order_by('-id')
+    serializer_class = AccessCodeSerializer
+    pagination_class = None
+    ordering = ['-id']
+

@@ -232,3 +232,4 @@ class Patrol(BaseModel):
 
     def __str__(self):
         return '{} - {}'.format(self.start_at.strftime('%Y-%m-%d'), self.member.username)
+
