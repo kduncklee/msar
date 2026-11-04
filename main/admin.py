@@ -99,8 +99,8 @@ class AccessCodeLocationInline(InlineDefaults):
 
 @admin.register(AccessCode)
 class AccessCodeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'keywords', 'updated_at')
-    search_fields = ('name', 'code', 'keywords')
+    list_display = ('name', 'code', 'verified_good', 'last_verified_at', 'notes', 'keywords', 'updated_at')
+    search_fields = ('name', 'code', 'notes', 'keywords')
     inlines = [AccessCodeLocationInline]
 
 

@@ -265,6 +265,9 @@ class TestApi(MemberTestMixin, APITestCase):
         create_payload = {
             'name': 'Gate 4 Trailhead',
             'code': '4821#',
+            'notes': 'Lockbox is located behind the wooden post on the left side of the gate. Combination is 1234.',
+            'last_verified_at': '2026-11-04T11:40:00-08:00',
+            'verified_good': True,
             'keywords': 'gate, water tower, north',
             'locations': [
                 {
@@ -285,6 +288,12 @@ class TestApi(MemberTestMixin, APITestCase):
         acid = created['id']
         self.assertEqual(created['name'], 'Gate 4 Trailhead')
         self.assertEqual(created['code'], '4821#')
+        self.assertEqual(
+            created['notes'],
+            'Lockbox is located behind the wooden post on the left side of the gate. Combination is 1234.',
+        )
+        self.assertIsNotNone(created['last_verified_at'])
+        self.assertTrue(created['verified_good'])
         self.assertEqual(created['keywords'], 'gate, water tower, north')
         self.assertEqual(len(created['locations']), 2)
         self.assertAlmostEqual(created['locations'][0]['latitude'], 34.025910)
@@ -296,7 +305,7 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertIn('created_at', created)
         self.assertIn('updated_at', created)
 
-        # POST create with zero locations
+        # POST create with zero locations and omitted optional fields (defaults: notes=null, last_verified_at=null, verified_good=True)
         empty_loc_payload = {
             'name': 'Command Post Keybox',
             'code': '1999',
@@ -306,6 +315,9 @@ class TestApi(MemberTestMixin, APITestCase):
         response2 = self.client.post(self.uri + 'access_codes/', empty_loc_payload, format='json')
         self.assertEqual(response2.status_code, 201)
         self.assertEqual(response2.json()['locations'], [])
+        self.assertIsNone(response2.json()['notes'])
+        self.assertIsNone(response2.json()['last_verified_at'])
+        self.assertTrue(response2.json()['verified_good'])
         acid2 = response2.json()['id']
 
         # GET list
@@ -316,11 +328,14 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(items[0]['id'], acid2)
         self.assertEqual(items[1]['id'], acid)
 
-        # PUT update (modifying scalar fields and replacing locations)
+        # PUT update (modifying scalar fields including notes, last_verified_at, verified_good, and replacing locations)
         update_payload = {
             'id': acid,
             'name': 'Gate 4 Trailhead - Main',
             'code': '4821#',
+            'notes': 'Updated lockbox instructions.',
+            'last_verified_at': '2026-11-04T12:00:00-08:00',
+            'verified_good': False,
             'keywords': 'gate, water tower, north',
             'locations': [
                 {
@@ -337,6 +352,9 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(response.status_code, 200)
         updated = response.json()
         self.assertEqual(updated['name'], 'Gate 4 Trailhead - Main')
+        self.assertEqual(updated['notes'], 'Updated lockbox instructions.')
+        self.assertIsNotNone(updated['last_verified_at'])
+        self.assertFalse(updated['verified_good'])
         self.assertEqual(len(updated['locations']), 1)
         self.assertEqual(updated['locations'][0]['label'], 'Updated North Gate')
 
