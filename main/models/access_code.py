@@ -5,6 +5,9 @@ from .base import BaseModel
 class AccessCode(BaseModel):
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=255)  # Access code value (e.g. "4821#", "Keybox 2")
+    notes = models.TextField(blank=True, null=True)
+    last_verified_at = models.DateTimeField(blank=True, null=True)
+    verified_good = models.BooleanField(default=True)
     keywords = models.TextField(blank=True, null=True)  # Optional search keywords
 
     class Meta:

@@ -623,7 +623,18 @@ class AccessCodeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AccessCode
-        fields = ['id', 'name', 'code', 'keywords', 'locations', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'name',
+            'code',
+            'notes',
+            'last_verified_at',
+            'verified_good',
+            'keywords',
+            'locations',
+            'created_at',
+            'updated_at',
+        ]
 
     def create(self, validated_data):
         locations_data = validated_data.pop('locations', [])
@@ -641,6 +652,9 @@ class AccessCodeSerializer(serializers.ModelSerializer):
         # Update scalar fields
         instance.name = validated_data.get('name', instance.name)
         instance.code = validated_data.get('code', instance.code)
+        instance.notes = validated_data.get('notes', instance.notes)
+        instance.last_verified_at = validated_data.get('last_verified_at', instance.last_verified_at)
+        instance.verified_good = validated_data.get('verified_good', instance.verified_good)
         instance.keywords = validated_data.get('keywords', instance.keywords)
         instance.save()
 
