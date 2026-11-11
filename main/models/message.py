@@ -482,6 +482,26 @@ class CalloutResponseOption(BasePositionModel):
     response = models.CharField(max_length=255)
     is_attending = models.BooleanField(default=True)
     color = models.CharField(max_length=15, default='', blank=True)
+    triggers_start_time = models.BooleanField(default=False)
+    triggers_end_time = models.BooleanField(default=False)
+    allow_initial = models.BooleanField(
+        default=True,
+        help_text="If True, this option is available when the user has not responded yet (my_response is null).",
+    )
+    allowed_from = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        default='*',
+        help_text="Comma-separated response codes that can transition to this option, '*' for any, or blank for none.",
+    )
+    compatible_response_time_mode = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        default='*',
+        help_text="Comma-separated list of response_time_modes (e.g. 'promised_time,stated_time') or '*' for any mode",
+    )
 
     @staticmethod
     def check_is_attending(response):
@@ -494,6 +514,8 @@ class CalloutResponse(BaseModel):
     period = models.ForeignKey(Period, on_delete=models.CASCADE)
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     response = models.CharField(max_length=255)
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
     history = HistoricalRecords()
 
     class Meta:
@@ -513,6 +535,8 @@ class CalloutLog(BaseModel):
     lat = models.CharField(max_length=255, blank=True, null=True)
     lon = models.CharField(max_length=255, blank=True, null=True)
     update = models.TextField(blank=True, null=True)
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
 
     @property
     def username_display(self):

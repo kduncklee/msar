@@ -85,7 +85,7 @@ class PeriodAdmin(SimpleHistoryAdmin):
 
 @admin.register(OperationTypesAvailable)
 class OperationTypesAvailableAdmin(admin.ModelAdmin):
-    list_display = ('name', 'enabled',)
+    list_display = ('name', 'enabled', 'response_time_mode',)
 
 
 @admin.register(Patrol)
@@ -105,12 +105,21 @@ class RadioChannelsAvailableeAdmin(admin.ModelAdmin):
 
 @admin.register(CalloutResponseOption)
 class CalloutResponseOptionAdmin(admin.ModelAdmin):
-    list_display = ('response', 'is_attending')
+    list_display = (
+        'response',
+        'position',
+        'is_attending',
+        'triggers_start_time',
+        'triggers_end_time',
+        'allow_initial',
+        'allowed_from',
+        'compatible_response_time_mode',
+    )
 
 
 @admin.register(CalloutResponse)
 class CalloutResponseAdmin(admin.ModelAdmin):
-    list_display = ('period', 'created_at', 'member', 'response')
+    list_display = ('period', 'created_at', 'member', 'response', 'start_time', 'end_time')
     search_fields = ['member', 'period']
 
 @admin.register(CalloutLog)

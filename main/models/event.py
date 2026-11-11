@@ -29,10 +29,19 @@ class RadioChannelsAvailable(BasePositionModel):
         return self.name
 
 class OperationTypesAvailable(BasePositionModel):
+    RESPONSE_TIME_MODES = (
+        ('promised_time', 'Promised Time'),
+        ('stated_time', 'Stated Time'),
+    )
     name = models.CharField(max_length=255)
     enabled = models.BooleanField(default=True)
     icon = models.CharField(max_length=255, blank=True)
     color = models.CharField(max_length=15, default=None, blank=True, null=True)
+    response_time_mode = models.CharField(
+        choices=RESPONSE_TIME_MODES,
+        max_length=50,
+        default='promised_time',
+    )
 
     def __str__(self):
         return self.name

@@ -15,19 +15,44 @@ def log_post_save_handler(sender, instance, created, **kwargs):
 def response_post_save_handler(sender, instance, created, **kwargs):
     message = '{} responded {}'.format(instance.member, instance.response)
     print(message)
+    attending = CalloutResponseOption.check_is_attending(instance.response)
+    log_start_time = instance.start_time if attending else None
+    log_end_time = instance.end_time if not attending else None
     CalloutLog.objects.create(
         type='response', event=instance.period.event,
         member=instance.member,
-        message=message, update=instance.response)
-    attending = CalloutResponseOption.check_is_attending(instance.response)
+        message=message, update=instance.response,
+        start_time=log_start_time,
+        end_time=log_end_time)
     participant_filter = {'period': instance.period,
                           'member': instance.member}
     if attending:
-        Participant.objects.get_or_create(**participant_filter)
+        p, _ = Participant.objects.get_or_create(**participant_filter)
+        updated = False
+        if instance.start_time is not None and p.signed_in_at != instance.start_time:
+            p.signed_in_at = instance.start_time
+            updated = True
+        if instance.end_time is not None and p.signed_out_at != instance.end_time:
+            p.signed_out_at = instance.end_time
+            updated = True
+        if updated:
+            p.save()
     else:
         p = Participant.objects.filter(**participant_filter).first()
         if p:
-            p.delete()
+            has_started = bool(p.signed_in_at or p.en_route_at or instance.start_time)
+            if has_started or instance.end_time is not None:
+                updated = False
+                if instance.start_time is not None and p.signed_in_at != instance.start_time:
+                    p.signed_in_at = instance.start_time
+                    updated = True
+                if instance.end_time is not None and p.signed_out_at != instance.end_time:
+                    p.signed_out_at = instance.end_time
+                    updated = True
+                if updated:
+                    p.save()
+            else:
+                p.delete()
 
 
 def available_member_ids():

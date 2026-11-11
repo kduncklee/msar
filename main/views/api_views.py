@@ -433,16 +433,39 @@ class CalloutViewSet(CreateListModelMixin, BaseViewSet):
         period = Period.objects.filter(event=pk).order_by('position').first()
         if period is None:
             raise serializers.ValidationError('No matching Period found.')
-        response = request.data['response']
+        serializer = CalloutResponsePostSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        response = validated_data['response']
+        option = CalloutResponseOption.objects.filter(response=response).first()
+        if 'start_time' not in validated_data and option and option.triggers_start_time:
+            validated_data['start_time'] = timezone.now()
+        if 'end_time' not in validated_data and option and option.triggers_end_time:
+            validated_data['end_time'] = timezone.now()
+        defaults = {'response': response}
+        if 'start_time' in validated_data:
+            defaults['start_time'] = validated_data['start_time']
+        if 'end_time' in validated_data:
+            defaults['end_time'] = validated_data['end_time']
         obj, created = CalloutResponse.objects.get_or_create(
             period=period,
             member=request.user,
-            defaults={'response': response},
+            defaults=defaults,
         )
         # Only update if changed - this suppresses duplication notifications
-        if not created and obj.response != response:
-            obj.response = response
-            obj.save()
+        if not created:
+            changed = False
+            if obj.response != response:
+                obj.response = response
+                changed = True
+            if 'start_time' in validated_data and obj.start_time != validated_data['start_time']:
+                obj.start_time = validated_data['start_time']
+                changed = True
+            if 'end_time' in validated_data and obj.end_time != validated_data['end_time']:
+                obj.end_time = validated_data['end_time']
+                changed = True
+            if changed:
+                obj.save()
         return Response(obj.pk)
 
 

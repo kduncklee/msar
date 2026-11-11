@@ -27,6 +27,8 @@ class TestApi(MemberTestMixin, APITestCase):
         CalloutResponseOption.objects.get_or_create(
             response='10-8', is_attending=True)
         CalloutResponseOption.objects.get_or_create(
+            response='10-19', is_attending=True)
+        CalloutResponseOption.objects.get_or_create(
             response='10-7', is_attending=False)
         self.member_urls = ['/api/announcement/log/']
         self.callout_urls = ['/api/callouts/']
@@ -71,6 +73,22 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(self.uri + 'member_availability/?status=TM')
         self.assertEqual(response.status_code, 200)
+        response = self.client.get(self.uri + 'operation_types/')
+        self.assertEqual(response.status_code, 200)
+        results = response.json()['results']
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['name'], 'rescue')
+        self.assertEqual(results[0]['response_time_mode'], 'promised_time')
+        response = self.client.get(self.uri + 'callout_responses/')
+        self.assertEqual(response.status_code, 200)
+        resp_options = response.json()['results']
+        self.assertGreaterEqual(len(resp_options), 1)
+        self.assertIn('position', resp_options[0])
+        self.assertIn('triggers_start_time', resp_options[0])
+        self.assertIn('triggers_end_time', resp_options[0])
+        self.assertIn('allow_initial', resp_options[0])
+        self.assertIn('allowed_from', resp_options[0])
+        self.assertEqual(resp_options[0]['compatible_response_time_mode'], '*')
 
     def _check_event_data(self, data, title, description, responses=0):
         self.assertEqual(data.get('title'), title)
@@ -250,3 +268,69 @@ class TestApi(MemberTestMixin, APITestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get('{}callouts/{}/log/'.format(self.uri, cid))
         self.assertEqual(response.status_code, 200)
+
+    @patch('main.lib.push.send_push_message')
+    def test_callout_respond_times(self, mock_send_push_message):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.uri + 'callouts/',
+            {
+                'title': 'Timed Callout',
+                'operation_type': 'rescue',
+                'description': 'Testing start_time and end_time',
+                'status': 'active',
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, 201)
+        cid = response.data['id']
+
+        # Respond 10-19 with start_time
+        start_iso = '2026-11-04T14:15:00-08:00'
+        response = self.client.post(
+            f'{self.uri}callouts/{cid}/respond/',
+            {'response': '10-19', 'start_time': start_iso},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200)
+
+        p = Participant.objects.get(member=self.user, period__event_id=cid)
+        self.assertIsNotNone(p.signed_in_at)
+        self.assertIsNone(p.signed_out_at)
+
+        detail = self.client.get(f'{self.uri}callouts/{cid}/').json()
+        resp_entry = detail['operational_periods'][0]['responses'][0]
+        self.assertEqual(resp_entry['response'], '10-19')
+        self.assertEqual(resp_entry['start_time'], start_iso)
+        self.assertIsNone(resp_entry['end_time'])
+
+        # Respond 10-7 with end_time (sign out)
+        end_iso = '2026-11-04T18:00:00-08:00'
+        response = self.client.post(
+            f'{self.uri}callouts/{cid}/respond/',
+            {'response': '10-7', 'end_time': end_iso},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Participant is preserved with both signed_in_at and signed_out_at
+        p.refresh_from_db()
+        self.assertIsNotNone(p.signed_in_at)
+        self.assertIsNotNone(p.signed_out_at)
+
+        detail = self.client.get(f'{self.uri}callouts/{cid}/').json()
+        resp_entry = detail['operational_periods'][0]['responses'][0]
+        self.assertEqual(resp_entry['response'], '10-7')
+        self.assertEqual(resp_entry['start_time'], start_iso)
+        self.assertEqual(resp_entry['end_time'], end_iso)
+
+        # Verify GET /api/callouts/{id}/log/ includes start_time and end_time on response logs
+        logs = self.client.get(f'{self.uri}callouts/{cid}/log/').json()['results']
+        response_logs = [log for log in logs if log['type'] == 'response']
+        self.assertEqual(len(response_logs), 2)
+        self.assertEqual(response_logs[0]['update'], '10-19')
+        self.assertEqual(response_logs[0]['start_time'], start_iso)
+        self.assertIsNone(response_logs[0]['end_time'])
+        self.assertEqual(response_logs[1]['update'], '10-7')
+        self.assertIsNone(response_logs[1]['start_time'])
+        self.assertEqual(response_logs[1]['end_time'], end_iso)

@@ -1,0 +1,121 @@
+[
+{
+  "model": "main.calloutresponseoption",
+  "pk": 1,
+  "fields": {
+    "created_at": "2026-10-30T22:58:20.089Z",
+    "updated_at": "2026-11-05T07:42:27.545Z",
+    "position": 1,
+    "response": "10-8",
+    "is_attending": true,
+    "color": "#47C39A",
+    "triggers_start_time": true,
+    "triggers_end_time": false,
+    "allow_initial": true,
+    "allowed_from": "*",
+    "compatible_response_time_mode": "promised_time"
+  }
+},
+{
+  "model": "main.calloutresponseoption",
+  "pk": 2,
+  "fields": {
+    "created_at": "2026-10-30T22:58:20.089Z",
+    "updated_at": "2026-11-05T07:42:24.193Z",
+    "position": 1,
+    "response": "10-19",
+    "is_attending": true,
+    "color": "#EDC767",
+    "triggers_start_time": true,
+    "triggers_end_time": false,
+    "allow_initial": true,
+    "allowed_from": "*",
+    "compatible_response_time_mode": "promised_time"
+  }
+},
+{
+  "model": "main.calloutresponseoption",
+  "pk": 3,
+  "fields": {
+    "created_at": "2026-10-30T22:58:20.090Z",
+    "updated_at": "2026-11-05T07:42:20.369Z",
+    "position": 1,
+    "response": "10-7",
+    "is_attending": false,
+    "color": "#F07676",
+    "triggers_start_time": false,
+    "triggers_end_time": false,
+    "allow_initial": true,
+    "allowed_from": "*",
+    "compatible_response_time_mode": "promised_time"
+  }
+},
+{
+  "model": "main.calloutresponseoption",
+  "pk": 4,
+  "fields": {
+    "created_at": "2026-11-05T06:51:54.871Z",
+    "updated_at": "2026-11-05T07:43:22.678Z",
+    "position": 1,
+    "response": "Yes",
+    "is_attending": true,
+    "color": "#0000DD",
+    "triggers_start_time": false,
+    "triggers_end_time": false,
+    "allow_initial": true,
+    "allowed_from": "No",
+    "compatible_response_time_mode": "stated_time"
+  }
+},
+{
+  "model": "main.calloutresponseoption",
+  "pk": 5,
+  "fields": {
+    "created_at": "2026-11-05T06:52:44.619Z",
+    "updated_at": "2026-11-05T07:47:27.291Z",
+    "position": 2,
+    "response": "Deploying",
+    "is_attending": true,
+    "color": "#00DD00",
+    "triggers_start_time": true,
+    "triggers_end_time": false,
+    "allow_initial": false,
+    "allowed_from": "Yes",
+    "compatible_response_time_mode": "stated_time"
+  }
+},
+{
+  "model": "main.calloutresponseoption",
+  "pk": 6,
+  "fields": {
+    "created_at": "2026-11-05T06:53:31.965Z",
+    "updated_at": "2026-11-05T07:48:06.975Z",
+    "position": 3,
+    "response": "Returned",
+    "is_attending": true,
+    "color": "#88DD00",
+    "triggers_start_time": false,
+    "triggers_end_time": true,
+    "allow_initial": false,
+    "allowed_from": "Deploying",
+    "compatible_response_time_mode": "stated_time"
+  }
+},
+{
+  "model": "main.calloutresponseoption",
+  "pk": 7,
+  "fields": {
+    "created_at": "2026-11-05T06:54:42.172Z",
+    "updated_at": "2026-11-05T07:43:16.052Z",
+    "position": 1,
+    "response": "No",
+    "is_attending": false,
+    "color": "#DD0000",
+    "triggers_start_time": false,
+    "triggers_end_time": false,
+    "allow_initial": true,
+    "allowed_from": "Yes",
+    "compatible_response_time_mode": "stated_time"
+  }
+}
+]

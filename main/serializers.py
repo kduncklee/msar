@@ -422,12 +422,12 @@ class CalloutResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = CalloutResponse
         read_only_fields = ('created_at',)
-        fields = ('id', 'response', 'member') + read_only_fields
+        fields = ('id', 'response', 'start_time', 'end_time', 'member') + read_only_fields
 
 class CalloutResponsePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = CalloutResponse
-        fields = ('id', 'response')
+        fields = ('id', 'response', 'start_time', 'end_time')
 
 
 class CalloutPeriodSerializer(serializers.ModelSerializer):
@@ -452,12 +452,23 @@ class RadioChannelsAvailableSerializer(serializers.ModelSerializer):
 class OperationTypesAvailableSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationTypesAvailable
-        fields = ('id', 'position', 'name', 'enabled', 'icon', 'color')
+        fields = ('id', 'position', 'name', 'enabled', 'icon', 'color', 'response_time_mode')
 
 class CalloutResponseOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CalloutResponseOption
-        fields = ('id', 'position', 'response', 'is_attending', 'color')
+        fields = (
+            'id',
+            'position',
+            'response',
+            'is_attending',
+            'triggers_start_time',
+            'triggers_end_time',
+            'allow_initial',
+            'allowed_from',
+            'compatible_response_time_mode',
+            'color',
+        )
 
 
 class DataFileSerializer(BaseFileSerializer):
@@ -588,4 +599,4 @@ class CalloutLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = CalloutLog
         read_only_fields = ('created_at',)
-        fields = ('id', 'type', 'event', 'member', 'message', 'location', 'update') + read_only_fields
+        fields = ('id', 'type', 'event', 'member', 'message', 'location', 'update', 'start_time', 'end_time') + read_only_fields
