@@ -96,7 +96,7 @@ class MemberEditView(PermissionRequiredMixin, generic.base.TemplateView):
     class MemberForm(forms.ModelForm):
         class Meta:
             model = Member
-            fields = ('status', 'ham', 'v9', 'dl')
+            fields = ('status', 'ham', 'v9', 'dl', 'radio_number')
         def __init__(self, user, *args, **kwargs):
             self.user = user
             super().__init__(*args, **kwargs)

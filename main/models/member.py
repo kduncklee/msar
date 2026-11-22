@@ -102,6 +102,7 @@ class Member(AbstractBaseUser, PermissionsMixin, BaseModel):
     dl = models.CharField(max_length=255, blank=True, null=True)
     ham = models.CharField(max_length=255, blank=True, null=True)
     v9 = models.CharField(max_length=255, blank=True, null=True)
+    radio_number = models.CharField(max_length=255, blank=True, null=True)
     is_active = models.BooleanField(default=True) # Django: Can log in
     is_staff = models.BooleanField(default=False) # Django: Can use admin site
     is_current_do = models.BooleanField(default=False)
