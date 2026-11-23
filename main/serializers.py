@@ -80,7 +80,7 @@ class MemberSerializer(serializers.HyperlinkedModelSerializer):
                             'display_email', 'display_phone', 'short_name', 'last_name',
                             'is_current',  'is_available', 'is_patrol_eligible', 'is_display',
                             'is_unavailable', 'is_staff', 'is_superuser',)
-        fields = ('id', 'dl', 'ham', 'emp', 'is_current_do',
+        fields = ('id', 'dl', 'ham', 'emp', 'radio_number', 'is_current_do',
                   'last_login', 'phone_set', ) + read_only_fields
 
     def get_color(self, member):
@@ -98,7 +98,7 @@ class ParticipantMemberSerializer(serializers.HyperlinkedModelSerializer):
                             'roles', 'role_order',
                             'display_email', 'display_phone', 'short_name',
                             'is_staff', 'is_superuser',)
-        fields = ('id', 'dl', 'ham', 'emp', 'is_current_do',
+        fields = ('id', 'dl', 'ham', 'emp', 'radio_number', 'is_current_do',
                   'last_login',) + read_only_fields
 
 

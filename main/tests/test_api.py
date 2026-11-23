@@ -65,11 +65,19 @@ class TestApi(MemberTestMixin, APITestCase):
 
 
     def test_filters(self):
+        self.other_user.radio_number = 'Radio 24'
+        self.other_user.save()
         self.client.force_login(self.user)
         response = self.client.get(self.uri)
         self.assertEqual(response.status_code, 200)
         response = self.client.get(self.uri + 'members/?status=TM')
         self.assertEqual(response.status_code, 200)
+        results = response.json()['results']
+        user_entry = next(m for m in results if m['id'] == self.other_user.id)
+        self.assertEqual(user_entry['radio_number'], 'Radio 24')
+        detail_resp = self.client.get(f'{self.uri}members/{self.other_user.id}/')
+        self.assertEqual(detail_resp.status_code, 200)
+        self.assertEqual(detail_resp.json()['radio_number'], 'Radio 24')
         response = self.client.get(self.uri + 'member_availability/?status=TM')
         self.assertEqual(response.status_code, 200)
 

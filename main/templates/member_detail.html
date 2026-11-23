@@ -86,6 +86,7 @@
 
   {% if member.ham %}<strong>Ham:</strong> {{ member.ham }}{% endif %}
   {% if member.v9 %}<strong>V9:</strong>{{ member.v9 }}{% endif %}
+  {% if member.radio_number %}<strong>Radio Number:</strong> {{ member.radio_number }}{% endif %}
   <strong> Privileges:</strong>
     {% if member.is_active %}Login{% endif %}
     {% if member.is_staff %}Staff{% endif %}
